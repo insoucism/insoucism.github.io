@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>这一页碎了 · 404</title>
+<meta name="description" content="页面不存在。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/style.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<canvas id="dust" aria-hidden="true"></canvas>
+
+<svg class="cracks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <path class="crack crack--draw" vector-effect="non-scaling-stroke"
+        d="M8,0 L11,9 L7,18 L13,29 L9,41 L15,55 L10,68 L16,82 L12,100"/>
+  <path class="crack crack--c" vector-effect="non-scaling-stroke"
+        d="M88,0 L85,12 L90,24 L84,37 L89,50 L83,64 L88,78 L85,100"/>
+</svg>
+
+<div class="glow" id="glow" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="./" aria-label="回到首页">
+    <span class="brand__mark">碎</span><span class="brand__dot">·</span><span class="brand__mark">集</span>
+  </a>
+  <button class="theme" id="theme-toggle" type="button" aria-label="切换明暗" aria-pressed="false">
+    <span class="theme__ico" aria-hidden="true"></span>
+  </button>
+</header>
+
+<main>
+  <section class="notfound">
+    <p class="notfound__code" data-enter>404</p>
+
+    <h1 class="notfound__title" data-ghost="这一页碎了" data-enter tabindex="0">这一页碎了</h1>
+
+    <p class="notfound__text" data-enter>
+      它可能被搬走、被改了名字，<br>
+      或者从来没有被写出来过。
+    </p>
+
+    <p class="notfound__actions" data-enter>
+      <a class="btn" href="./"><span>回到开头</span></a>
+    </p>
+
+    <p class="notfound__hint" data-enter>
+      如果你是从我这里点过来的，写信告诉我：hi@example.com
+    </p>
+  </section>
+</main>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

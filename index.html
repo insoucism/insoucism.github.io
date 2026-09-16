@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>林未生 · 碎集</title>
+<meta name="description" content="一个写代码的人的碎集。关于、作品、字与信。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!-- 碎屑：缓慢上浮的尘埃 -->
+<canvas id="dust" aria-hidden="true"></canvas>
+
+<!-- 裂纹层：贯穿整页的细缝 -->
+<svg class="cracks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <path class="crack crack--draw" vector-effect="non-scaling-stroke"
+        d="M8,0 L11,9 L7,18 L13,29 L9,41 L15,55 L10,68 L16,82 L12,100"/>
+  <path class="crack crack--c" vector-effect="non-scaling-stroke"
+        d="M88,0 L85,12 L90,24 L84,37 L89,50 L83,64 L88,78 L85,100"/>
+  <path class="crack crack--thin" vector-effect="non-scaling-stroke"
+        d="M11,9 L18,14 L24,12 M85,24 L78,19 L72,22 M15,55 L22,59 L27,57"/>
+</svg>
+
+<!-- 跟随指针的微光 -->
+<div class="glow" id="glow" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="topbar">
+  <a class="brand" href="#top" aria-label="回到顶部">
+    <span class="brand__mark">碎</span><span class="brand__dot">·</span><span class="brand__mark">集</span>
+  </a>
+  <nav class="nav" aria-label="主导航">
+    <a href="#about" data-nav="about">关于</a>
+    <a href="#works" data-nav="works">作品</a>
+    <a href="#words" data-nav="words">字</a>
+    <a href="#contact" data-nav="contact">写信</a>
+  </nav>
+  <button class="theme" id="theme-toggle" type="button" aria-label="切换明暗" aria-pressed="false">
+    <span class="theme__ico" aria-hidden="true"></span>
+  </button>
+</header>
+
+<main id="main">
+
+  <!-- ── 首屏 ───────────────────────────────────── -->
+  <section class="hero" id="top">
+    <p class="hero__meta" data-enter>写代码的人 &nbsp;/&nbsp; 现居南方 &nbsp;/&nbsp; 常常失眠</p>
+
+    <h1 class="hero__title" id="hero-title" data-enter tabindex="0" title="点一下，它会碎">
+      林未生
+    </h1>
+
+    <p class="hero__line">
+      <span id="poem-line" data-enter>我们只是路过了彼此的光。</span>
+      <button class="poem__switcher" id="poem-switch" type="button" aria-label="换一句">换一句</button>
+    </p>
+
+    <p class="hero__desc" data-enter>
+      我把想不清的事写成代码，把说不出口的事写成短句。<br>
+      这里放着我做坏又修好的东西，和一些还没有形状的念头。
+    </p>
+
+    <div class="hero__actions" data-enter>
+      <a class="btn" href="#works"><span>看看作品</span></a>
+      <a class="link" href="#contact">写信给我<span class="link__line" aria-hidden="true"></span></a>
+    </div>
+
+    <p class="hero__scroll" data-enter aria-hidden="true"><span class="hero__scrollLine"></span>向下</p>
+  </section>
+
+  <!-- ── 关于 ───────────────────────────────────── -->
+  <section class="section" id="about">
+    <h2 class="section__title" data-ghost="关于" data-reveal>关于</h2>
+
+    <div class="prose" data-reveal>
+      <p>
+        我是林未生。白天写前端，夜里写些不成气候的句子。
+        相信界面应该像一张纸：安静，能承住字，也允许有一点破。
+      </p>
+      <p>
+        喜欢的东西很旧：宋体的横细竖粗、旧书的毛边、雨落在铁皮棚上的声音。
+        讨厌的东西很新：不断跳出来的红点、被算法安排好的喜欢。
+      </p>
+    </div>
+
+    <ul class="facts" data-reveal>
+      <li><span class="facts__k">现在</span><span class="facts__v">在一家小公司做界面</span></li>
+      <li><span class="facts__k">会写</span><span class="facts__v">TypeScript · CSS · 一点 Rust</span></li>
+      <li><span class="facts__k">在学</span><span class="facts__v">排版、木工、把话说短</span></li>
+      <li><span class="facts__k">邮箱</span><span class="facts__v">hi@example.com</span></li>
+    </ul>
+  </section>
+
+  <!-- ── 作品 ───────────────────────────────────── -->
+  <section class="section" id="works">
+    <h2 class="section__title" data-ghost="作品" data-reveal>作品</h2>
+    <p class="section__lead" data-reveal>四件做过的东西。点开是一段自述，不是宣传。</p>
+
+    <div class="works" id="works-list">
+      <article class="work" data-reveal>
+        <button class="work__head" type="button" aria-expanded="false">
+          <span class="work__no">01</span>
+          <span class="work__name">光墟</span>
+          <span class="work__tag">网页 / 2024</span>
+          <span class="work__plus" aria-hidden="true"></span>
+        </button>
+        <div class="work__body">
+          <div class="work__bodyIn">
+            <p>一个把城市灯光拆成像素再重排的实验页面。滚轮往下，光会散开；停住，它慢慢聚回来。</p>
+            <p class="work__stack">Canvas · WebGL · 三个月里的周末</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="work" data-reveal>
+        <button class="work__head" type="button" aria-expanded="false">
+          <span class="work__no">02</span>
+          <span class="work__name">潮汐信箱</span>
+          <span class="work__tag">工具 / 2023</span>
+          <span class="work__plus" aria-hidden="true"></span>
+        </button>
+        <div class="work__body">
+          <div class="work__bodyIn">
+            <p>给写不出信的人用的写信器。你打字，字迹会被时间冲淡，只能选择现在寄出，或者让它消失。</p>
+            <p class="work__stack">TypeScript · IndexedDB · 无后端</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="work" data-reveal>
+        <button class="work__head" type="button" aria-expanded="false">
+          <span class="work__no">03</span>
+          <span class="work__name">纸的骨头</span>
+          <span class="work__tag">字体 / 2022</span>
+          <span class="work__plus" aria-hidden="true"></span>
+        </button>
+        <div class="work__body">
+          <div class="work__bodyIn">
+            <p>一套只做了六百字的宋体。横细竖粗照老规矩来，撇捺故意留了毛刺，像被撕过。</p>
+            <p class="work__stack">Glyphs · 只给自己用</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="work" data-reveal>
+        <button class="work__head" type="button" aria-expanded="false">
+          <span class="work__no">04</span>
+          <span class="work__name">沉默记录仪</span>
+          <span class="work__tag">写作 / 进行中</span>
+          <span class="work__plus" aria-hidden="true"></span>
+        </button>
+        <div class="work__body">
+          <div class="work__bodyIn">
+            <p>每天记一句没说出口的话。攒够一年，打印成一本只有夜晚能读懂的书。</p>
+            <p class="work__stack">还在写 · 第 217 天</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── 字 ─────────────────────────────────────── -->
+  <section class="section" id="words">
+    <h2 class="section__title" data-ghost="字" data-reveal>字</h2>
+    <p class="section__lead" data-reveal>短的东西。有的写在手机备忘录里，有的写在收据背面。</p>
+
+    <div class="words">
+      <details class="word" data-reveal>
+        <summary>
+          <span class="word__title">碎片集 · 其一</span>
+          <span class="word__hint" aria-hidden="true">展</span>
+        </summary>
+        <div class="word__body">
+          <p>夜里所有的碎片都在开花。</p>
+          <p>我把自己拆开，才看见光。</p>
+          <p>风穿过裂缝，像穿过一句没说完的话。</p>
+        </div>
+      </details>
+
+      <details class="word" data-reveal>
+        <summary>
+          <span class="word__title">给一个人</span>
+          <span class="word__hint" aria-hidden="true">展</span>
+        </summary>
+        <div class="word__body">
+          <p>你走以后，房间多出一个下午。</p>
+          <p>我把它折好，放进抽屉，和别的下午放在一起。</p>
+          <p>它们都很轻，也都不肯走。</p>
+        </div>
+      </details>
+
+      <details class="word" data-reveal>
+        <summary>
+          <span class="word__title">关于工作</span>
+          <span class="word__hint" aria-hidden="true">展</span>
+        </summary>
+        <div class="word__body">
+          <p>修一个 bug 像在墙上找一条裂缝。</p>
+          <p>找到了，墙就塌了。</p>
+          <p>然后你把它重新砌起来，比原来好看一点，这是这份工作唯一浪漫的地方。</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ── 写信 ───────────────────────────────────── -->
+  <section class="section section--contact" id="contact">
+    <h2 class="section__title" data-ghost="写信" data-reveal>写信</h2>
+    <p class="prose" data-reveal>
+      不着急回信，但每封都会看。<br>
+      聊聊排版、界面、或者你最近失眠的原因，都可以。
+    </p>
+
+    <div class="contact" data-reveal>
+      <button class="mail" id="copy-mail" type="button" data-mail="hi@example.com">
+        <span class="mail__text">hi@example.com</span>
+        <span class="mail__state" id="copy-state" aria-live="polite">点击复制</span>
+      </button>
+
+      <ul class="links">
+        <li><a class="link" href="https://github.com/" target="_blank" rel="noopener">GitHub<span class="link__line" aria-hidden="true"></span></a></li>
+        <li><a class="link" href="#top">回到开头<span class="link__line" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>© <span id="year">2025</span> 林未生</span>
+  <span class="footer__note">本站由手写代码与失眠构成</span>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

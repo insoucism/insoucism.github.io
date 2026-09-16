@@ -1,0 +1,21 @@
+# 部署用不到的东西
+node_modules/
+.vercel/
+.netlify/
+.wrangler/
+.cache/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# 日志
+*.log
+npm-debug.log*
+
+# 本地部署脚本（工具，不随站点发布）
+deploy-github.ps1
+deploy-github.cmd
