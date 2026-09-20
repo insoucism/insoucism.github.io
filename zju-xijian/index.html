@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>浙江大学西迁路线示意图</title>
+<style>
+/* =========================================================================
+   一、基础与配色（低饱和国风：赭石 / 墨黑 / 暗橙 / 青蓝）
+   ========================================================================= */
+:root{
+  --paper:      #efe4cc;   /* 宣纸底色 */
+  --paper-lit:  #f7efdd;   /* 纸面亮部 */
+  --paper-dark: #e3d5b6;   /* 纸面暗部 */
+  --ink:        #2c2620;   /* 墨黑 */
+  --ink-soft:   #5b5041;   /* 淡墨 */
+  --ink-faint:  #8c8069;   /* 更淡 */
+  --gray-line:  #b6ab95;   /* 省界淡灰 */
+  --orange:     #c2611f;   /* 赭石·西迁主线 */
+  --orange-lit: #e8913f;   /* 主线高光 */
+  --blue-dark:  #234a63;   /* 深墨蓝·师生步行路线 */
+  --blue-lit:   #3f7796;
+  --seal:       #9a3a2c;   /* 朱砂印 */
+  --card-bg:    rgba(250,244,230,.955);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; margin:0; }
+
+body{
+  font-family:"FangSong","STFangsong","FangSong_GB2312","Songti SC","SimSun",serif;
+  color:var(--ink);
+  background:var(--paper);
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---- 宣纸肌理：底色渐变 + 颗粒杂色 + 帘纹 ---- */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(115% 85% at 10% 6%,  rgba(255,251,240,.80), rgba(255,251,240,0) 58%),
+    radial-gradient(95% 75% at 90% 94%,  rgba(188,156,106,.26), rgba(188,156,106,0) 62%),
+    radial-gradient(60% 55% at 52% 43%,  rgba(255,253,246,.45), rgba(255,253,246,0) 72%),
+    linear-gradient(158deg,#f4ead6 0%,#ece0c7 46%,#e5d7ba 100%);
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
+  opacity:.52; mix-blend-mode:multiply;
+  background-image:
+    /* 颗粒杂色（fractalNoise） */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='.44'/></svg>"),
+    /* 宣纸帘纹 */
+    repeating-linear-gradient(90deg, rgba(146,118,76,.035) 0 1px, rgba(0,0,0,0) 1px 11px),
+    repeating-linear-gradient(0deg,  rgba(146,118,76,.022) 0 1px, rgba(0,0,0,0) 1px 17px),
+    /* 纸张纤维斑 */
+    radial-gradient(38% 30% at 22% 76%, rgba(170,140,95,.10), rgba(0,0,0,0) 70%),
+    radial-gradient(30% 26% at 78% 22%, rgba(170,140,95,.08), rgba(0,0,0,0) 70%);
+}
+
+header.topbar,
+main.workspace,
+footer.timeline{ position:relative; z-index:2; }
+
+/* =========================================================================
+   二、顶部标题栏
+   ========================================================================= */
+header.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:16px 30px 8px;
+}
+.brand{ display:flex; align-items:center; gap:16px; }
+.seal{
+  width:46px; height:46px; flex:none;
+  display:grid; place-items:center;
+  color:#fff; font-family:"STKaiti","KaiTi","Songti SC",serif;
+  font-size:19px; letter-spacing:1px; line-height:1.02; text-align:center;
+  background:linear-gradient(150deg,#a8402f,#8d3123);
+  border-radius:4px;
+  box-shadow:0 2px 6px rgba(120,50,35,.35), inset 0 0 0 2px rgba(255,235,225,.55);
+  transform:rotate(-2.2deg);
+  opacity:0; transition:opacity .9s ease .35s, transform .9s cubic-bezier(.2,1.5,.4,1) .35s;
+}
+body.ready .seal{ opacity:.94; transform:rotate(-2.2deg); }
+
+h1{
+  margin:0;
+  font-family:"Songti SC","STSong","SimSun","Source Han Serif SC",serif;
+  font-size:31px; font-weight:700; letter-spacing:.15em; line-height:1.2;
+  color:#2a241c;
+  text-shadow:0 1px 0 rgba(255,252,244,.85), 0 3px 10px rgba(120,95,60,.16);
+  opacity:0; transform:translateY(8px);
+  transition:opacity 1.1s ease .12s, transform 1.1s cubic-bezier(.2,.9,.3,1) .12s;
+}
+body.ready h1{ opacity:1; transform:none; }
+
+.subtitle{
+  margin:7px 0 0 2px; font-size:13.5px; letter-spacing:.24em; color:var(--ink-faint);
+  opacity:0; transition:opacity 1.1s ease .5s;
+}
+body.ready .subtitle{ opacity:1; }
+
+.title-rule{
+  height:3px; width:100%; margin-top:9px; border-radius:2px;
+  background:linear-gradient(90deg, rgba(90,72,50,0) 0%, rgba(90,72,50,.52) 9%, rgba(154,58,44,.42) 46%, rgba(90,72,50,.52) 90%, rgba(90,72,50,0) 100%);
+  transform:scaleX(0); transform-origin:left center;
+  transition:transform 1.3s cubic-bezier(.25,.9,.25,1) .3s;
+}
+body.ready .title-rule{ transform:scaleX(1); }
+
+/* 右上：古琴音乐开关 */
+.music-btn{
+  flex:none; display:flex; align-items:center; gap:10px;
+  padding:9px 15px 9px 12px;
+  font-family:inherit; font-size:14px; letter-spacing:.16em; color:var(--ink-soft);
+  background:linear-gradient(180deg, rgba(252,247,236,.9), rgba(238,228,206,.82));
+  border:1px solid rgba(140,110,72,.5); border-radius:3px;
+  box-shadow:0 2px 7px rgba(110,88,54,.13), inset 0 1px 0 rgba(255,255,255,.6);
+  cursor:pointer; transition:all .28s ease;
+  opacity:0; transform:translateY(-6px);
+}
+body.ready .music-btn{ opacity:1; transform:none; transition:opacity .9s ease .55s, transform .9s ease .55s, background .28s ease, border-color .28s ease, box-shadow .28s ease; }
+.music-btn:hover{ border-color:rgba(154,58,44,.65); box-shadow:0 3px 12px rgba(110,88,54,.2); }
+.music-btn .qin{ opacity:.8; transition:opacity .3s ease; }
+.music-btn.on{ color:#7c3520; border-color:rgba(154,58,44,.6); background:linear-gradient(180deg, rgba(255,247,232,.95), rgba(244,228,201,.9)); }
+.music-btn.on .qin{ opacity:1; }
+.music-btn .dot{
+  width:7px; height:7px; border-radius:50%; background:rgba(120,105,80,.45);
+  box-shadow:0 0 0 0 rgba(154,58,44,.4); transition:background .3s ease;
+}
+.music-btn.on .dot{ background:var(--seal); animation:ripple 2.4s ease-out infinite; }
+@keyframes ripple{
+  0%{ box-shadow:0 0 0 0 rgba(154,58,44,.42); }
+  70%{ box-shadow:0 0 0 7px rgba(154,58,44,0); }
+  100%{ box-shadow:0 0 0 0 rgba(154,58,44,0); }
+}
+
+/* =========================================================================
+   三、主体两栏：左侧总述 / 右侧地图
+   ========================================================================= */
+main.workspace{
+  display:grid; grid-template-columns:308px minmax(0,1fr); gap:16px;
+  padding:4px 30px 6px; min-height:0;
+}
+
+/* ---- 左侧文字板块 ---- */
+.sidebar{
+  position:relative; min-height:0; overflow:auto;
+  padding:20px 20px 18px 22px;
+  background:linear-gradient(180deg, rgba(252,247,236,.72), rgba(240,231,212,.5));
+  border:1px solid rgba(146,116,78,.4); border-radius:3px;
+  box-shadow:inset 0 0 34px rgba(160,132,88,.13), 0 6px 18px rgba(110,88,54,.08);
+  opacity:0; transform:translateX(-14px);
+  transition:opacity 1.1s ease .35s, transform 1.1s cubic-bezier(.2,.9,.3,1) .35s;
+}
+body.ready .sidebar{ opacity:1; transform:none; }
+.sidebar::-webkit-scrollbar{ width:6px; }
+.sidebar::-webkit-scrollbar-thumb{ background:rgba(146,116,78,.35); border-radius:3px; }
+
+.sidebar h2{
+  margin:0 0 4px; font-family:"Songti SC","STSong","SimSun",serif;
+  font-size:17px; letter-spacing:.3em; color:#3a3126; font-weight:700;
+}
+.sidebar .h2-rule{
+  height:0; border-top:1px solid rgba(146,116,78,.5);
+  border-bottom:1px solid rgba(146,116,78,.22); margin:8px 0 14px; padding-top:2px;
+}
+.sidebar p{
+  margin:0 0 9px; font-size:13.9px; line-height:1.94; color:#453b2d;
+  text-indent:2em; text-align:justify; letter-spacing:.02em;
+}
+.sidebar p .key{ color:#8a4a22; font-weight:700; }
+.sidebar p .key2{ color:#2c4a63; font-weight:700; }
+
+.facts{ display:flex; flex-wrap:wrap; gap:7px; margin:12px 0 10px; }
+.fact{
+  flex:1 1 auto; text-align:center; padding:7px 8px 6px;
+  border:1px solid rgba(146,116,78,.4); border-radius:2px;
+  background:linear-gradient(180deg, rgba(255,251,241,.75), rgba(243,234,215,.5));
+}
+.fact b{ display:block; font-family:"Songti SC",serif; font-size:16px; color:#8a4a22; letter-spacing:.06em; }
+.fact span{ display:block; margin-top:2px; font-size:11.5px; color:var(--ink-faint); letter-spacing:.12em; }
+
+.order-list{ margin:10px 0 0; padding:0; list-style:none; }
+.order-list li{
+  position:relative; padding:3px 0 3px 16px; font-size:13.4px; color:#4d4234; letter-spacing:.04em;
+}
+.order-list li::before{
+  content:""; position:absolute; left:2px; top:11px;
+  width:5px; height:5px; transform:rotate(45deg);
+  background:var(--orange); opacity:.75;
+}
+.order-list li em{ font-style:normal; color:var(--ink-faint); font-size:12.4px; }
+
+.tips{
+  margin-top:13px; padding-top:10px; border-top:1px dashed rgba(146,116,78,.45);
+  font-size:12.2px; line-height:1.88; color:var(--ink-faint); letter-spacing:.06em;
+}
+.tips b{ color:var(--ink-soft); font-weight:400; }
+
+/* ---- 右侧地图舞台 ---- */
+.map-stage{
+  position:relative; min-height:0; overflow:hidden;
+  border:1px solid rgba(140,110,74,.42); border-radius:3px;
+  background:
+    radial-gradient(120% 100% at 30% 20%, rgba(255,252,244,.55), rgba(255,252,244,0) 60%),
+    linear-gradient(180deg, rgba(250,245,232,.5), rgba(238,229,208,.36));
+  box-shadow:inset 0 0 70px rgba(158,130,86,.14), 0 8px 24px rgba(110,88,54,.09);
+  cursor:grab; touch-action:none; user-select:none;
+  opacity:0; transition:opacity 1.2s ease .25s;
+}
+body.ready .map-stage{ opacity:1; }
+.map-stage.dragging{ cursor:grabbing; }
+/* 注意：只作用于主地图 SVG，避免影响指北针与图例中的小图标 */
+#map{ display:block; width:100%; height:100%; }
+
+/* SVG 图元样式 */
+#viewport{ transform-origin:0 0; }
+
+.prov{
+  fill:rgba(172,156,124,.055);
+  stroke:var(--gray-line); stroke-width:1.05;
+  stroke-linejoin:round; stroke-linecap:round;
+  opacity:0; transition:opacity 1.5s ease;
+}
+.prov.shown{ opacity:.72; }
+.prov-sea{
+  fill:rgba(120,150,165,.07); stroke:rgba(150,170,180,.5); stroke-width:1;
+  opacity:0; transition:opacity 1.5s ease;
+}
+.prov-sea.shown{ opacity:.75; }
+.river{
+  fill:none; stroke:rgba(105,140,160,.42); stroke-width:1.15;
+  stroke-linecap:round; opacity:0; transition:opacity 1.4s ease .5s;
+}
+.river.shown{ opacity:.5; }
+.geo-label{
+  fill:rgba(122,108,84,.62); font-size:15px; letter-spacing:.34em;
+  font-family:"Songti SC","STSong","SimSun",serif;
+  text-anchor:middle; paint-order:stroke; stroke:rgba(246,238,220,.85); stroke-width:3;
+  opacity:0; transition:opacity 1.4s ease;
+}
+.geo-label.shown{ opacity:.72; }
+.river-label{
+  fill:rgba(105,140,160,.65); font-size:11.5px; letter-spacing:.24em;
+  paint-order:stroke; stroke:rgba(246,238,220,.85); stroke-width:3;
+  opacity:0; transition:opacity 1.4s ease;
+}
+.river-label.shown{ opacity:.75; }
+
+/* ---- 路线：暗底 / 主线 / 流光 ---- */
+.seg-glow{ fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .8s ease; }
+.seg-line{ fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.seg-flow{ fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity 1s ease; }
+.route-main .seg-glow{ stroke:var(--orange);     stroke-width:9;  filter:blur(3px); }
+.route-main .seg-line{ stroke:var(--orange);     stroke-width:2.9; }
+.route-main .seg-flow{ stroke:var(--orange-lit); stroke-width:2.2; stroke-dasharray:5 46; }
+.route-branch .seg-glow{ stroke:var(--orange);     stroke-width:7; filter:blur(3px); }
+.route-branch .seg-line{ stroke:var(--orange);     stroke-width:2.1; stroke-dasharray:7 4; }
+.route-branch .seg-flow{ stroke:var(--orange-lit); stroke-width:1.6; stroke-dasharray:3 52; }
+.route-walk .seg-glow{ stroke:var(--blue-dark); stroke-width:8;  filter:blur(3px); }
+.route-walk .seg-line{ stroke:var(--blue-dark); stroke-width:2.6; }
+.route-walk .seg-flow{ stroke:var(--blue-lit);  stroke-width:1.9; stroke-dasharray:4 50; }
+
+.seg.drawn .seg-glow{ opacity:.30; }
+.seg.drawn .seg-flow{ opacity:.95; animation:flow 5.2s linear infinite; }
+@keyframes flow{ from{ stroke-dashoffset:0; } to{ stroke-dashoffset:-51; } }
+
+.spark{ fill:url(#sparkGrad); opacity:0; transition:opacity 1.2s ease; }
+.spark.on{ opacity:.95; }
+
+/* ---- 站点标记 ---- */
+.station{ cursor:pointer; opacity:0; transition:opacity .6s ease; }
+.station.show{ opacity:1; }
+.station .pop{
+  transform-box:fill-box; transform-origin:center;
+  transform:scale(.15); transition:transform .62s cubic-bezier(.16,1.5,.4,1);
+}
+.station.show .pop{ transform:scale(1); }
+.st-halo{
+  fill:var(--orange); opacity:.16;
+  transform-box:fill-box; transform-origin:center;
+  animation:breath 3.9s ease-in-out infinite;
+}
+.station[data-kind="place"] .st-halo{ fill:#7a4a22; }
+.station[data-kind="branch"] .st-halo{ fill:#5b6f4a; }
+@keyframes breath{
+  0%,100%{ opacity:.10; transform:scale(1); }
+  50%    { opacity:.34; transform:scale(1.55); }
+}
+.st-ring{ fill:none; stroke-width:1.1; opacity:.75; }
+.station[data-kind="place"] .st-ring{ stroke:#7a4a22; }
+.station[data-kind="branch"] .st-ring{ stroke:#5b6f4a; }
+.station .st-ring{ stroke:var(--orange); }
+.st-dot{ fill:#6d3410; stroke:rgba(255,248,232,.9); stroke-width:1.1; }
+.station[data-kind="place"] .st-dot{ fill:#5c3616; }
+.station[data-kind="branch"] .st-dot{ fill:#46583a; }
+
+.station .st-name{
+  transition:transform .6s ease .25s, opacity .8s ease .25s, fill .3s ease;
+}
+.station:hover .pop,
+.station.active .pop{
+  transform:scale(1.72);
+  transition:transform .3s cubic-bezier(.2,1.4,.4,1);
+}
+.station:hover .st-name,
+.station.active .st-name{ transition:fill .3s ease; }
+.station .st-name{
+  font-family:"Songti SC","STSong","SimSun",serif;
+  font-size:14px; letter-spacing:.08em; fill:#332a1f;
+  paint-order:stroke; stroke:rgba(247,240,224,.92); stroke-width:3.4; stroke-linejoin:round;
+  pointer-events:none;
+}
+.station:hover .st-name,
+.station.active .st-name{ fill:#8a3f14; }
+.st-hit{ fill:transparent; }
+.station .st-name{ opacity:0; transform:translateY(3px); }
+.station.show .st-name{ opacity:1; transform:none; transition:opacity .8s ease .25s, transform .6s ease .25s; }
+
+/* ---- 指北针 ---- */
+.compass{ position:absolute; top:16px; right:18px; width:66px; height:66px; opacity:0; transition:opacity 1.2s ease .8s; pointer-events:none; }
+body.ready .compass{ opacity:.72; }
+
+/* ---- 图例（右下角） ---- */
+.legend{
+  position:absolute; right:16px; bottom:14px;
+  padding:11px 14px 9px; min-width:186px;
+  background:linear-gradient(180deg, rgba(252,247,236,.9), rgba(240,231,212,.82));
+  border:1px solid rgba(140,110,74,.5); border-radius:3px;
+  box-shadow:0 3px 12px rgba(110,88,54,.14), inset 0 1px 0 rgba(255,255,255,.5);
+  opacity:0; transform:translateY(10px);
+  transition:opacity 1s ease .9s, transform 1s cubic-bezier(.2,.9,.3,1) .9s;
+  pointer-events:none;
+}
+body.ready .legend{ opacity:1; transform:none; }
+.legend h3{
+  margin:0 0 8px; font-size:12.5px; font-weight:400; letter-spacing:.4em;
+  color:var(--ink-soft); border-bottom:1px solid rgba(140,110,74,.32); padding-bottom:5px;
+}
+.legend .row{ display:flex; align-items:center; gap:9px; font-size:12.6px; color:#4a4033; letter-spacing:.06em; margin:7px 0; }
+.legend .swatch{ width:38px; height:9px; flex:none; }
+.legend .note{ margin-top:8px; font-size:10.8px; color:var(--ink-faint); letter-spacing:.06em; }
+
+/* ---- 左下角视图按钮 ---- */
+.view-ctrl{
+  position:absolute; left:16px; bottom:14px; display:flex; gap:6px;
+  opacity:0; transition:opacity 1s ease 1s;
+}
+body.ready .view-ctrl{ opacity:1; }
+.view-ctrl button{
+  min-width:31px; height:29px; padding:0 7px; display:grid; place-items:center;
+  font-family:"Songti SC",serif; font-size:15px; color:var(--ink-soft);
+  background:linear-gradient(180deg, rgba(252,247,236,.9), rgba(240,231,212,.8));
+  border:1px solid rgba(140,110,74,.45); border-radius:2px; cursor:pointer;
+  transition:all .22s ease;
+}
+.view-ctrl button:hover{ color:#8a3f14; border-color:rgba(154,58,44,.6); }
+
+/* ---- 悬浮史料浮卡 ---- */
+.story-card{
+  position:absolute; z-index:20; width:298px;
+  padding:14px 16px 14px;
+  background:var(--card-bg);
+  border:1px solid rgba(128,96,58,.62); border-radius:4px;
+  box-shadow:0 12px 32px rgba(96,74,44,.2), 0 2px 6px rgba(96,74,44,.12), inset 0 0 24px rgba(180,152,104,.13);
+  opacity:0; transform:translateY(7px) scale(.97); pointer-events:none;
+  transition:opacity .34s cubic-bezier(.3,.8,.3,1), transform .34s cubic-bezier(.3,.8,.3,1);
+  backdrop-filter:blur(1.5px);
+}
+.story-card.show{ opacity:1; transform:none; }
+.story-card::before{
+  content:""; position:absolute; inset:4px; border:1px solid rgba(146,116,78,.26); border-radius:2px; pointer-events:none;
+}
+.card-arrow{
+  position:absolute; width:11px; height:11px; background:var(--card-bg);
+  border-left:1px solid rgba(128,96,58,.62); border-bottom:1px solid rgba(128,96,58,.62);
+  transform:rotate(45deg); top:var(--arrow-y,40px); margin-top:-5.5px;
+}
+.story-card[data-side="right"] .card-arrow{ left:-6px; }
+.story-card[data-side="left"]  .card-arrow{ right:-6px; transform:rotate(225deg); }
+.card-top{ display:flex; align-items:center; gap:10px; }
+.card-seal{
+  width:29px; height:29px; flex:none; display:grid; place-items:center;
+  font-family:"STKaiti","KaiTi",serif; font-size:14px; color:#fffdf6;
+  background:linear-gradient(150deg,#a8402f,#8c3023); border-radius:3px;
+  box-shadow:inset 0 0 0 1.5px rgba(255,238,228,.5);
+}
+.card-name{
+  margin:0; font-family:"Songti SC","STSong","SimSun",serif;
+  font-size:17px; letter-spacing:.16em; color:#2f271d; font-weight:700;
+}
+.card-sub{ display:block; margin-top:2px; font-size:11.6px; color:var(--ink-faint); letter-spacing:.1em; }
+.card-date{
+  display:inline-block; margin:11px 0 9px; padding:2.5px 9px;
+  font-size:11.8px; letter-spacing:.14em; color:#8a3f14;
+  background:rgba(194,97,31,.1); border:1px solid rgba(194,97,31,.34); border-radius:2px;
+}
+.card-text{
+  margin:0; font-size:13.3px; line-height:1.95; color:#453b2d;
+  text-align:justify; letter-spacing:.015em;
+}
+
+/* =========================================================================
+   四、底部横向时间轴
+   ========================================================================= */
+footer.timeline{
+  padding:6px 30px 16px;
+  opacity:0; transform:translateY(14px);
+  transition:opacity 1.1s ease .5s, transform 1.1s cubic-bezier(.2,.9,.3,1) .5s;
+}
+body.ready footer.timeline{ opacity:1; transform:none; }
+
+.tl-wrap{ position:relative; padding:16px 8px 4px; }
+.tl-line{
+  position:absolute; left:8px; right:8px; top:26px; height:2px;
+  background:linear-gradient(90deg, rgba(194,97,31,.15), rgba(194,97,31,.5) 12%, rgba(90,80,64,.42) 50%, rgba(35,74,99,.5) 88%, rgba(35,74,99,.15));
+  border-radius:2px;
+}
+.tl-progress{
+  position:absolute; left:8px; top:26px; height:2px; width:0; border-radius:2px;
+  background:linear-gradient(90deg, var(--orange), #b8763a, var(--blue-dark));
+  box-shadow:0 0 8px rgba(194,97,31,.5);
+  transition:width .85s cubic-bezier(.3,.9,.3,1);
+}
+.tl-nodes{ position:relative; display:flex; justify-content:space-between; align-items:flex-start; }
+.tl-node{
+  position:relative; flex:1 1 0; display:flex; flex-direction:column; align-items:center;
+  padding:0 2px; background:none; border:0; cursor:pointer; font-family:inherit;
+  opacity:0; transform:translateY(10px);
+  transition:opacity .6s ease, transform .6s cubic-bezier(.2,1.3,.4,1);
+}
+.tl-node.shown{ opacity:1; transform:none; }
+.tl-node .bulb{
+  width:13px; height:13px; margin-top:14px; border-radius:50%;
+  background:#f6efdd; border:1.6px solid rgba(150,120,80,.75);
+  box-shadow:0 0 0 3px rgba(246,239,221,.75);
+  transition:all .3s cubic-bezier(.2,1.4,.4,1);
+}
+.tl-node[data-kind="place"] .bulb{ border-radius:2px; transform:rotate(45deg); }
+.tl-node[data-kind="branch"] .bulb{ border-radius:50% 50% 3px 3px; }
+.tl-node .tl-date{
+  margin-top:10px; font-size:11.4px; letter-spacing:.08em; color:var(--ink-faint);
+  transition:color .3s ease;
+}
+.tl-node .tl-name{
+  margin-top:3px; font-family:"Songti SC","STSong","SimSun",serif;
+  font-size:14px; letter-spacing:.14em; color:#3b3226; transition:color .3s ease;
+}
+.tl-node .tl-name i{ font-style:normal; font-size:10.5px; color:var(--ink-faint); letter-spacing:0; }
+.tl-node:hover .bulb{ border-color:var(--orange); box-shadow:0 0 0 4px rgba(194,97,31,.18); }
+.tl-node:hover .tl-name{ color:#8a3f14; }
+.tl-node.active .bulb{
+  background:var(--orange); border-color:#8a3f14;
+  box-shadow:0 0 0 5px rgba(194,97,31,.2), 0 0 12px rgba(194,97,31,.5);
+  transform:scale(1.25) rotate(45deg);
+}
+.tl-node[data-kind="walk-active"] .bulb{ transform:scale(1.25); }
+.tl-node.active .tl-name{ color:#8a3f14; }
+.tl-node.active .tl-date{ color:#9a5a2a; }
+
+/* 入场时被跳过的动画 */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== 顶部 ===================== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="seal">求是</div>
+    <div>
+      <h1>浙江大学西迁路线示意图</h1>
+      <div class="subtitle">一九三七年 — 一九四六年 · 辗转六省 · 行程二千六百余公里</div>
+      <div class="title-rule"></div>
+    </div>
+  </div>
+  <button class="music-btn" id="musicBtn" title="古琴背景音乐开关（默认静音）">
+    <svg class="qin" width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">
+      <path d="M2 5.2 C7 3.4 19 3.4 24 5.2 L24 10.8 C19 12.6 7 12.6 2 10.8 Z" fill="none" stroke="currentColor" stroke-width="1.1"/>
+      <path d="M3.4 6.4 H22.6 M3.2 7.8 H22.8 M3.2 9.2 H22.8 M3.6 10.4 H22.4" stroke="currentColor" stroke-width=".55" opacity=".75"/>
+    </svg>
+    <span class="dot"></span>
+    <span id="musicLabel">琴音 · 静</span>
+  </button>
+</header>
+
+<!-- ===================== 主体 ===================== -->
+<main class="workspace">
+
+  <!-- 左侧总述 -->
+  <aside class="sidebar">
+    <h2>西 迁 总 述</h2>
+    <div class="h2-rule"></div>
+
+    <p>一九三七年七月，抗日战争全面爆发。九月，杭州告急，竺可桢校长以惊人的胆略与魅力，毅然率领全校师生西迁。</p>
+    <p>一迁浙江西天目、建德；二迁江西吉安、泰和；三迁广西宜山；四迁贵州遵义。途经<span class="key">浙、赣、湘、粤、桂、黔</span>六省，行程<span class="key">二千六百余公里</span>。</p>
+    <p>一九四〇年初抵贵州遵义，此后在<span class="key2">遵义、湄潭、永兴</span>办学七年，弦歌不辍，被世人誉为「东方剑桥」。学校另于浙江龙泉建立分校，与西迁本部遥相呼应。</p>
+
+    <div class="facts">
+      <div class="fact"><b>六省</b><span>浙赣湘粤桂黔</span></div>
+      <div class="fact"><b>2600+</b><span>公里行程</span></div>
+      <div class="fact"><b>七年</b><span>黔北办学</span></div>
+    </div>
+
+    <ul class="order-list">
+      <li>一迁 浙江西天目、建德 <em>1937</em></li>
+      <li>二迁 江西吉安、泰和 <em>1938</em></li>
+      <li>三迁 广西宜山 <em>1939</em></li>
+      <li>四迁 贵州遵义、湄潭、永兴 <em>1940</em></li>
+      <li>分校 浙江龙泉 <em>1939</em></li>
+    </ul>
+
+    <div class="tips">
+      <b>操作提示</b><br>
+      滚轮缩放 · 按住拖拽平移<br>
+      悬浮站点查看史料浮卡<br>
+      点击底部时间轴节点自动定位
+    </div>
+  </aside>
+
+  <!-- 右侧地图 -->
+  <section class="map-stage" id="stage">
+    <svg id="map" viewBox="0 52 1200 706" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="sparkGrad">
+          <stop offset="0%"   stop-color="#fff6e0" stop-opacity=".98"/>
+          <stop offset="34%"  stop-color="#ffbf6d" stop-opacity=".78"/>
+          <stop offset="70%"  stop-color="#e07a2e" stop-opacity=".26"/>
+          <stop offset="100%" stop-color="#c2611f" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sparkGradBlue">
+          <stop offset="0%"   stop-color="#eaf6ff" stop-opacity=".95"/>
+          <stop offset="34%"  stop-color="#79b6d8" stop-opacity=".7"/>
+          <stop offset="72%"  stop-color="#2f6d92" stop-opacity=".22"/>
+          <stop offset="100%" stop-color="#234a63" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <g id="viewport">
+        <g id="layer-province"></g>
+        <g id="layer-river"></g>
+        <g id="layer-geo-label"></g>
+        <g id="layer-route"></g>
+        <g id="layer-spark"></g>
+        <g id="layer-station"></g>
+      </g>
+    </svg>
+
+    <!-- 指北针 -->
+    <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="52" r="34" fill="none" stroke="rgba(122,100,68,.6)" stroke-width="1.2"/>
+      <circle cx="50" cy="52" r="28" fill="none" stroke="rgba(122,100,68,.28)" stroke-width=".8" stroke-dasharray="2 4"/>
+      <path d="M50 16 L57 55 L50 48 L43 55 Z" fill="rgba(154,58,44,.78)" stroke="rgba(90,60,40,.5)" stroke-width=".8"/>
+      <path d="M50 88 L43 49 L50 56 L57 49 Z" fill="rgba(70,60,48,.42)"/>
+      <text x="50" y="11" text-anchor="middle" font-size="11" fill="rgba(90,74,52,.85)" font-family="Songti SC,SimSun,serif">北</text>
+    </svg>
+
+    <!-- 图例 -->
+    <div class="legend">
+      <h3>图 例</h3>
+      <div class="row">
+        <svg class="swatch" viewBox="0 0 38 9"><path d="M1 6 C8 1.5 14 1.5 19 4.5 C25 7.5 31 7.5 37 3" fill="none" stroke="#c2611f" stroke-width="2.6" stroke-linecap="round"/></svg>
+        <span>西迁路线</span>
+      </div>
+      <div class="row">
+        <svg class="swatch" viewBox="0 0 38 9"><path d="M1 6 C8 1.5 14 1.5 19 4.5 C25 7.5 31 7.5 37 3" fill="none" stroke="#234a63" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span>师生步行路线</span>
+      </div>
+      <div class="row">
+        <svg class="swatch" viewBox="0 0 38 9"><circle cx="19" cy="4.5" r="4" fill="#6d3410" stroke="rgba(255,248,232,.9)"/><circle cx="19" cy="4.5" r="7.5" fill="none" stroke="rgba(194,97,31,.45)"/></svg>
+        <span>西迁站点</span>
+      </div>
+      <div class="note">底图为写意示意，不表示精确比例</div>
+    </div>
+
+    <!-- 视图控制 -->
+    <div class="view-ctrl">
+      <button id="zoomIn"  title="放大">＋</button>
+      <button id="zoomOut" title="缩小">－</button>
+      <button id="resetView" title="复位视图" style="font-size:12.5px;letter-spacing:0">复位</button>
+    </div>
+
+    <!-- 史料浮卡（内容由 STATION_DATA 渲染） -->
+    <div class="story-card" id="storyCard"></div>
+  </section>
+</main>
+
+<!-- ===================== 底部时间轴 ===================== -->
+<footer class="timeline">
+  <div class="tl-wrap" id="tlWrap">
+    <div class="tl-line"></div>
+    <div class="tl-progress" id="tlProgress"></div>
+    <div class="tl-nodes" id="tlNodes"></div>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* =============================================================================
+ * 浙江大学西迁路线示意图 —— 交互脚本
+ *
+ * 结构总览：
+ *   §1  站点文案数据（STATION_DATA）—— 文案隔离区，改文字只改这里
+ *   §2  地图底图数据（省界 / 河流 / 地理标注）
+ *   §3  路线数据（ROUTES）
+ *   §4  投影与曲线工具
+ *   §5  渲染：底图 / 路线 / 站点 / 时间轴
+ *   §6  入场逐段描边动画
+ *   §7  流动光点粒子
+ *   §8  缩放、平移、视图动画
+ *   §9  史料浮卡
+ *   §10 古琴背景音乐（WebAudio 合成，默认静音）
+ * ========================================================================== */
+
+/* =============================================================================
+ * §1  站点文案数据
+ * -----------------------------------------------------------------------------
+ *  ★★★ 全部文字内容集中在此，勿在渲染逻辑中硬写文案 ★★★
+ *    name      站点名（地图与时间轴显示）
+ *    sub       副标题（浮卡内小字）
+ *    date      时间（浮卡内时间胶囊）
+ *    tl        时间轴节点上的短日期
+ *    text      历史事件正文（浮卡主体）
+ *    seal      浮卡左上印章字
+ *    lon/lat   经纬度（投影后绘制）
+ *    kind      标记形制：origin 起点三角 / stop 途经圆点 / place 办学地方形 / branch 分校
+ *    label     地图标注位置微调 { dx, dy, anchor }
+ *    order     时间轴顺序（数字越小越靠前）
+ * ========================================================================== */
+const STATION_DATA = {
+  hangzhou: {
+    name: "杭州",
+    sub: "浙江大学本部 · 西迁起点",
+    date: "1937年9月",
+    tl: "1937.9",
+    text: "一九三七年七月，抗日战争全面爆发。九月，杭州告急，竺可桢校长毅然率领全校师生撤离钱塘江畔的求是园。学校初迁浙江西天目山、建德，历时九载、辗转六省的西迁长路自此启程。",
+    seal: "始",
+    lon: 120.15, lat: 30.28,
+    kind: "origin",
+    label: { dx: 0, dy: -18, anchor: "middle" },
+    order: 1
+  },
+  xitianmushan: {
+    name: "西天目山",
+    sub: "禅源寺 · 一年级临时校址",
+    date: "1937年9月—11月",
+    tl: "1937.9",
+    text: "九月，一年级新生与新聘教师先行迁至西天目山禅源寺，借千年古刹为课堂。山寺钟声与诵读之声相和，课本摊在佛殿前的石阶上，浙大在烽火中守住第一处弦歌之地。",
+    seal: "一",
+    lon: 119.43, lat: 30.31,
+    kind: "stop",
+    label: { dx: 0, dy: 22, anchor: "middle" },
+    order: 2
+  },
+  jiande: {
+    name: "建德",
+    sub: "梅城 · 浙西临时校址",
+    date: "1937年11月—12月",
+    tl: "1937.11",
+    text: "十一月，杭州形势日危，师生分批溯钱塘江而上，迁至建德梅城。十二月二十四日杭州沦陷，浙大仍在此坚持上课月余，随后沿浙赣线继续南行，一路弦歌不绝。",
+    seal: "二",
+    lon: 119.29, lat: 29.48,
+    kind: "stop",
+    label: { dx: 15, dy: 5, anchor: "start" },
+    order: 3
+  },
+  jian: {
+    name: "吉安",
+    sub: "白鹭洲 · 赣江沙洲复课",
+    date: "1938年1月—2月",
+    tl: "1938.1",
+    text: "一九三八年一月，师生辗转抵达江西吉安，以白鹭洲中学等处为校舍，在赣江中的沙洲上重开课堂。寒假期间，师生还下乡开展抗日宣传与民众教育，把课堂搬到了田间村口。",
+    seal: "三",
+    lon: 114.99, lat: 27.11,
+    kind: "stop",
+    label: { dx: 0, dy: -18, anchor: "middle" },
+    order: 4
+  },
+  taihe: {
+    name: "泰和",
+    sub: "上田村 · 赣中办学近一年",
+    date: "1938年2月—1939年1月",
+    tl: "1938.2",
+    text: "一九三八年二月，校址迁至泰和上田村。浙大在此办学近一年，兴建校舍、创办垦殖场与实验学校，并协助地方修筑防洪长堤，乡人感念，称之为「浙大堤」。",
+    seal: "四",
+    lon: 114.91, lat: 26.79,
+    kind: "stop",
+    label: { dx: 6, dy: 22, anchor: "start" },
+    order: 5
+  },
+  yishan: {
+    name: "宜山",
+    sub: "广西宜山 · 龙江之畔定校训",
+    date: "1939年1月—1940年2月",
+    tl: "1939.1",
+    text: "一九三八年七月敌陷九江，师生分水陆两路几经周折，于十月抵达广西宜山。在龙江之畔的简陋校舍中，竺可桢校长确立「求是」为校训，并作《求是精神与牺牲精神》演讲，砥砺师生。",
+    seal: "五",
+    lon: 108.65, lat: 24.50,
+    kind: "stop",
+    label: { dx: 0, dy: -18, anchor: "middle" },
+    order: 6
+  },
+  longquan: {
+    name: "龙泉",
+    sub: "坊下村 · 浙大龙泉分校",
+    date: "1939年10月",
+    tl: "1939.10",
+    text: "一九三九年十月，为收容东南各省失学青年，浙大在浙江龙泉坊下村设立分校。一九四〇年春敌扰浙东，分校师生一度迁往福建松溪，同年冬迁回龙泉，在浙南山区坚持办学七年。",
+    seal: "分",
+    lon: 119.13, lat: 28.07,
+    kind: "branch",
+    label: { dx: 15, dy: 5, anchor: "start" },
+    order: 7
+  },
+  zunyi: {
+    name: "遵义",
+    sub: "黔北办学 · 校本部所在",
+    date: "1940年2月—1946年",
+    tl: "1940.2",
+    text: "一九四〇年初，浙大迁抵贵州遵义，以老城校舍为校本部。此后七年，学校在遵义、湄潭、永兴三地办学，延聘名师、潜心研究，学术空气浓厚，被世人誉为「东方剑桥」。",
+    seal: "六",
+    lon: 106.93, lat: 27.72,
+    kind: "place",
+    label: { dx: -9, dy: 22, anchor: "end" },
+    order: 8
+  },
+  meitan: {
+    name: "湄潭",
+    sub: "理学院 · 农学院所在地",
+    date: "1940年—1946年",
+    tl: "1940",
+    text: "一九四〇年秋，理学院、农学院迁至湄潭，借文庙、祠堂与民房为校舍。湄江之畔，生物、农学、茶叶等研究卓有成就，浙大在困顿中迎来学术的黄金时期。",
+    seal: "七",
+    lon: 107.47, lat: 27.78,
+    kind: "place",
+    label: { dx: 0, dy: 22, anchor: "middle" },
+    order: 9
+  },
+  yongxing: {
+    name: "永兴",
+    sub: "一年级分部所在",
+    date: "1940年—1946年",
+    tl: "1940",
+    text: "永兴为浙大一年级分部所在，新生在此接受基础课教育。小镇的会馆与祠庙化身教室，学子于油灯之下苦读，延续着千里西迁不熄的文脉。",
+    seal: "八",
+    lon: 107.62, lat: 27.94,
+    kind: "place",
+    label: { dx: 0, dy: -18, anchor: "middle" },
+    order: 10
+  }
+};
+
+/* 时间轴顺序（按史事先后排列，龙泉分校列于宜山之后） */
+const TIMELINE_ORDER = [
+  "hangzhou", "xitianmushan", "jiande", "jian", "taihe",
+  "yishan", "longquan", "zunyi", "meitan", "yongxing"
+];
+
+/* =============================================================================
+ * §2  底图数据
+ * -----------------------------------------------------------------------------
+ *  省界为手绘写意轮廓（[经度, 纬度] 数组），仅作历史地理参照，非精确界线。
+ * ========================================================================== */
+const PROVINCES = [
+  { name:"浙江", label:[120.25,29.75], pts:[
+    [119.05,31.10],[120.10,31.14],[121.10,30.95],[121.35,30.72],[121.05,30.42],[121.55,30.15],
+    [122.00,30.05],[121.80,29.45],[121.55,28.85],[121.90,28.20],[121.30,27.90],[120.90,27.30],
+    [120.40,27.00],[119.60,27.20],[119.00,27.50],[118.40,28.10],[118.00,28.60],[118.20,29.20],
+    [118.40,29.75],[119.20,30.25],[119.05,31.10]
+  ]},
+  { name:"江西", label:[116.05,28.35], pts:[
+    [114.00,29.62],[115.00,29.90],[115.90,30.20],[116.60,29.90],[117.30,29.70],[117.90,29.30],
+    [118.20,28.70],[118.40,28.20],[118.00,27.90],[117.50,27.70],[117.20,27.00],[116.50,26.40],
+    [116.00,25.60],[115.50,24.90],[114.60,25.00],[114.20,25.60],[113.80,26.20],[113.70,27.00],
+    [113.90,27.80],[113.80,28.60],[114.30,29.20],[114.00,29.62]
+  ]},
+  { name:"湖南", label:[111.30,27.95], pts:[
+    [109.40,30.00],[110.30,30.10],[111.40,30.00],[112.50,29.80],[113.50,29.70],[114.00,29.30],
+    [114.20,28.80],[113.90,28.00],[114.20,27.40],[113.90,26.60],[113.50,25.60],[112.80,25.00],
+    [112.00,24.90],[111.40,25.20],[110.60,25.60],[110.00,26.20],[109.50,26.60],[109.30,27.50],
+    [109.20,28.40],[109.40,29.20],[109.40,30.00]
+  ]},
+  { name:"广东", label:[113.45,23.25], pts:[
+    [110.00,25.20],[111.00,25.40],[112.00,25.20],[113.00,25.40],[114.00,25.30],[114.80,25.20],
+    [115.50,24.90],[116.20,24.60],[116.80,24.00],[117.20,23.60],[116.80,23.20],[116.00,22.80],
+    [114.80,22.60],[113.80,22.30],[113.50,22.00],[113.00,21.90],[112.00,21.60],[111.00,21.40],
+    [110.40,21.20],[109.90,21.50],[110.30,22.80],[110.10,23.60],[110.00,24.40],[110.00,25.20]
+  ]},
+  { name:"广西", label:[108.05,23.35], pts:[
+    [105.00,24.90],[105.60,25.30],[106.30,25.50],[107.00,25.30],[107.80,25.60],[108.60,25.80],
+    [109.40,26.20],[110.00,26.20],[110.60,25.80],[111.20,25.40],[111.60,24.90],[111.90,24.40],
+    [112.00,23.90],[111.60,23.40],[111.00,23.00],[110.50,22.60],[110.00,22.40],[109.70,21.90],
+    [109.20,21.50],[108.60,21.60],[108.00,21.50],[107.40,21.60],[106.70,22.00],[106.20,22.50],
+    [105.80,23.20],[105.50,23.90],[105.00,24.40],[105.00,24.90]
+  ]},
+  { name:"贵州", label:[105.85,26.55], pts:[
+    [104.50,28.90],[105.50,29.00],[106.50,29.20],[107.50,29.00],[108.40,28.90],[109.00,28.70],
+    [109.40,28.20],[109.30,27.50],[109.00,27.20],[108.80,26.60],[108.90,26.00],[108.50,25.50],
+    [107.90,25.30],[107.20,25.00],[106.40,24.70],[105.70,24.70],[105.20,24.90],[104.70,25.30],
+    [104.40,26.00],[104.30,26.70],[104.60,27.50],[104.90,28.20],[104.50,28.90]
+  ]},
+  { name:"福建", label:[118.20,26.00], pts:[
+    [118.40,28.30],[119.20,28.00],[119.80,27.60],[120.30,27.40],[120.50,27.00],[120.00,26.40],
+    [119.60,26.00],[119.40,25.50],[118.70,24.90],[118.10,24.50],[117.60,24.00],[117.30,23.60],
+    [116.90,23.90],[116.50,24.40],[116.20,25.00],[116.50,25.60],[116.80,26.20],[117.00,26.80],
+    [117.30,27.30],[117.60,27.80],[118.40,28.30]
+  ]},
+  { name:"安徽", label:[117.15,31.45], pts:[
+    [116.00,34.60],[116.80,34.50],[117.60,34.40],[118.40,34.50],[119.30,34.40],[119.60,33.60],
+    [119.20,33.20],[118.80,32.60],[118.60,32.00],[118.30,31.40],[118.60,30.90],[119.20,30.60],
+    [119.40,30.20],[118.80,29.90],[118.40,29.60],[118.20,29.20],[117.80,29.40],[117.30,29.70],
+    [116.60,29.90],[116.20,30.20],[115.80,30.60],[115.60,31.20],[115.70,31.90],[115.40,32.50],
+    [115.80,33.20],[116.00,34.60]
+  ]},
+  { name:"江苏", label:[119.90,32.85], pts:[
+    [116.40,34.60],[117.50,34.60],[118.50,34.80],[119.50,35.00],[120.30,34.40],[120.90,33.50],
+    [121.40,32.50],[121.90,31.80],[121.30,31.40],[120.50,31.05],[119.50,31.25],[118.80,31.35],
+    [118.50,32.30],[118.20,32.60],[117.00,32.60],[116.50,33.50],[116.40,34.60]
+  ]},
+  { name:"湖北", label:[112.30,31.30], pts:[
+    [110.00,33.20],[111.00,33.20],[112.00,32.60],[112.80,32.40],[113.50,32.40],[114.30,31.90],
+    [115.20,31.70],[115.80,31.20],[116.10,30.60],[115.50,29.90],[114.70,29.60],[114.00,29.30],
+    [113.50,29.70],[112.50,29.80],[111.40,30.00],[110.30,30.10],[109.40,30.00],[109.00,30.80],
+    [109.50,31.60],[110.00,32.40],[110.00,33.20]
+  ]},
+  { name:"重庆", label:[106.90,30.15], pts:[
+    [105.30,30.20],[106.00,30.50],[106.50,30.80],[107.20,31.00],[108.40,31.60],[109.50,31.60],
+    [109.00,30.80],[108.50,30.20],[108.50,29.40],[109.00,28.90],[108.40,28.90],[107.50,29.00],
+    [106.50,29.20],[105.80,29.60],[105.40,29.60],[105.30,30.20]
+  ]},
+  { name:"四川", label:[103.80,30.80], pts:[
+    [104.00,32.60],[105.50,33.00],[106.50,32.60],[107.50,32.30],[108.50,32.30],[108.40,31.60],
+    [107.20,31.00],[106.50,30.80],[106.00,30.50],[105.30,30.20],[104.80,29.40],[104.40,28.60],
+    [103.90,28.30],[103.30,27.80],[102.50,27.90],[101.50,28.00],[101.00,29.00],[101.50,30.00],
+    [101.90,31.00],[102.50,31.90],[103.20,32.60],[104.00,32.60]
+  ]},
+  { name:"云南", label:[103.10,24.60], pts:[
+    [104.70,25.30],[105.20,24.90],[105.70,24.70],[104.50,23.20],[103.50,22.60],[102.50,22.40],
+    [101.80,22.40],[101.10,21.80],[100.10,21.50],[99.20,22.10],[98.90,23.20],[98.00,24.10],
+    [97.50,24.50],[98.00,25.50],[98.70,26.10],[98.50,27.00],[98.80,27.90],[99.00,28.50],
+    [99.50,29.00],[100.50,29.20],[101.00,29.00],[102.00,28.30],[103.30,27.80],[103.90,28.30],
+    [104.40,28.60],[104.40,27.30],[104.30,26.70],[104.40,26.00],[104.70,25.30]
+  ]}
+];
+
+/* 台湾岛（写意轮廓，仅作地理参照） */
+const TAIWAN = {
+  name:"台湾", label:[121.05,23.75],
+  pts:[[121.00,25.25],[121.80,25.05],[121.60,24.30],[120.95,22.60],[120.75,22.00],
+       [120.25,22.55],[120.10,23.50],[120.50,24.60],[121.00,25.25]]
+};
+
+/* 长江（淡写意水线，供地理参照） */
+const CHANGJIANG = {
+  label:[112.90,31.05],
+  pts:[[104.60,28.80],[105.60,29.10],[106.55,29.56],[107.40,29.75],[108.40,30.80],[110.20,30.90],
+       [111.30,30.70],[112.20,30.35],[113.10,30.30],[114.30,30.60],[115.00,30.20],[116.00,29.70],
+       [116.80,30.00],[117.05,30.50],[118.40,31.35],[118.80,32.05],[119.45,32.20],[120.40,31.95],
+       [121.10,31.65],[121.60,31.40]]
+};
+
+/* =============================================================================
+ * §3  路线数据
+ * -----------------------------------------------------------------------------
+ *  main   橙色——西迁主行进路线（舟车）
+ *  walk   深墨蓝——师生步行路线
+ *  branch 橙色细虚线——龙泉分校支线
+ *  每段 pts 为 [经度, 纬度] 途经点，to 表示该段终点站点 id（用于描边动画联动）
+ * ========================================================================== */
+const ROUTES = {
+  main: [
+    { to:"xitianmushan", pts:[[120.15,30.28],[119.80,30.35],[119.43,30.31]] },
+    { to:"jiande",       pts:[[119.43,30.31],[119.12,29.92],[119.29,29.48]] },
+    { to:"jian",         pts:[[119.29,29.48],[118.87,28.94],[117.97,28.45],[117.07,28.26],[116.30,27.80],[114.99,27.11]] },
+    { to:"taihe",        pts:[[114.99,27.11],[114.93,26.92],[114.91,26.79]] },
+    { to:"yishan",       pts:[[114.91,26.79],[114.24,26.94],[113.55,26.79],[112.57,26.89],[111.62,26.42],
+                              [110.85,25.85],[110.29,25.27],[109.90,24.70],[109.42,24.32],[108.90,24.42],[108.65,24.50]] },
+    { to:"zunyi",        pts:[[108.65,24.50],[108.06,24.70],[107.55,25.83],[107.52,26.26],[106.63,26.65],[106.93,27.72]] },
+    { to:"meitan",       pts:[[106.93,27.72],[107.18,27.86],[107.47,27.78]] },
+    { to:"yongxing",     pts:[[107.47,27.78],[107.56,27.88],[107.62,27.94]] }
+  ],
+  walk: [
+    /* 师生步行路线：泰和—赣州—南雄—三水—梧州—柳州—宜山 */
+    { to:"yishan", pts:[[114.91,26.79],[114.52,26.32],[114.94,25.83],[114.31,25.12],[113.60,24.80],
+                        [113.05,23.70],[112.90,23.20],[112.47,23.05],[111.30,23.48],[110.39,23.54],
+                        [109.80,24.00],[109.42,24.32],[108.65,24.50]] },
+    /* 师生步行路线：湄潭—永兴小段（与主线略呈交叉） */
+    { to:"yongxing", pts:[[107.47,27.78],[107.38,27.94],[107.62,27.94]] }
+  ],
+  branch: [
+    /* 龙泉分校支线：兰溪—金华—丽水—龙泉 */
+    { to:"longquan", pts:[[119.46,29.21],[119.65,29.08],[120.03,28.89],[120.09,28.66],[119.92,28.45],
+                          [119.57,28.12],[119.13,28.07]] }
+  ]
+};
+
+/* =============================================================================
+ * §4  投影与曲线工具
+ * ========================================================================== */
+const PROJ = { lon0: 102, lat0: 32.8, sx: 60, sy: 68 }; // 等距圆柱近似，取 27°N 附近比例
+const px = lon => (lon - PROJ.lon0) * PROJ.sx;
+const py = lat => (PROJ.lat0 - lat) * PROJ.sy;
+const project = arr => arr.map(([lon, lat]) => [px(lon), py(lat)]);
+
+/** Catmull-Rom 样条转三次贝塞尔路径，得到手绘般柔顺的曲线 */
+function crPath(points, closed, tension){
+  const t = (tension === undefined) ? 0.5 : tension;
+  const p = points;
+  if (p.length < 2) return "";
+  let P;
+  if (closed) P = [p[p.length - 1]].concat(p, [p[0], p[1]]);
+  else        P = [p[0]].concat(p, [p[p.length - 1]]);
+  const f = n => (Math.round(n * 10) / 10);
+  let d = "M " + f(P[1][0]) + " " + f(P[1][1]);
+  const last = closed ? P.length - 2 : P.length - 2;
+  for (let i = 1; i < last; i++){
+    const p0 = P[i-1], p1 = P[i], p2 = P[i+1], p3 = P[i+2];
+    const c1x = p1[0] + (p2[0]-p0[0])/6*t, c1y = p1[1] + (p2[1]-p0[1])/6*t;
+    const c2x = p2[0] - (p3[0]-p1[0])/6*t, c2y = p2[1] - (p3[1]-p1[1])/6*t;
+    d += " C " + f(c1x) + " " + f(c1y) + ", " + f(c2x) + " " + f(c2y) + ", " + f(p2[0]) + " " + f(p2[1]);
+  }
+  if (closed) d += " Z";
+  return d;
+}
+
+/* 便捷 DOM 构造 */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){
+  const n = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+const $  = s => document.querySelector(s);
+
+/* =============================================================================
+ * §5  渲染
+ * ========================================================================== */
+const svg      = $("#map");
+const viewport = $("#viewport");
+const stage    = $("#stage");
+const card     = $("#storyCard");
+
+const markerById = {};   // 站点 id -> <g class="station">
+let   stationXY  = {};   // 站点 id -> [x, y]（用户坐标）
+
+/* ---- 5.1 底图：省界 / 岛屿 / 河流 / 地理标注 ---- */
+function renderBaseMap(){
+  const gProv = $("#layer-province");
+  const gRiver = $("#layer-river");
+  const gLab   = $("#layer-geo-label");
+
+  const allProv = PROVINCES.concat([TAIWAN]);
+  allProv.forEach((prov, i) => {
+    const isIsland = prov.name === "台湾";
+    const path = el("path", {
+      d: crPath(project(prov.pts), true, 0.45),
+      "class": isIsland ? "prov-sea" : "prov"
+    });
+    gProv.appendChild(path);
+    baseFade.push({ node: path, delay: 120 + i * 55 });
+  });
+
+  /* 长江 */
+  const river = el("path", { d: crPath(project(CHANGJIANG.pts), false, 0.5), "class": "river" });
+  gRiver.appendChild(river);
+  baseFade.push({ node: river, delay: 620 });
+
+  /* 省名标注 */
+  allProv.forEach((prov, i) => {
+    if (!prov.label) return;
+    const [x, y] = [px(prov.label[0]), py(prov.label[1])];
+    const t = el("text", { x: x, y: y, "class": "geo-label" });
+    t.textContent = prov.name;
+    gLab.appendChild(t);
+    baseFade.push({ node: t, delay: 420 + i * 45 });
+  });
+  /* 长江名 */
+  const rl = el("text", {
+    x: px(CHANGJIANG.label[0]), y: py(CHANGJIANG.label[1]),
+    "class": "river-label", "text-anchor": "middle"
+  });
+  rl.textContent = "长 江";
+  gLab.appendChild(rl);
+  baseFade.push({ node: rl, delay: 780 });
+}
+const baseFade = [];   // 底图淡入队列
+
+/* ---- 5.2 路线渲染 ---- */
+const segments = [];   // { group, path, flow, glow, len, color, drawn }
+
+function renderRoutes(){
+  const gRoute = $("#layer-route");
+  const kinds = [
+    { key: "main",   cls: "route-main"   },
+    { key: "walk",   cls: "route-walk"   },
+    { key: "branch", cls: "route-branch" }
+  ];
+  kinds.forEach(kind => {
+    ROUTES[kind.key].forEach(seg => {
+      const d = crPath(project(seg.pts), false, 0.5);
+      const g = el("g", { "class": "seg " + kind.cls });
+
+      const glow  = el("path", { d: d, "class": "seg-glow" });
+      const line  = el("path", { d: d, "class": "seg-line" });
+      const flow  = el("path", { d: d, "class": "seg-flow" });
+      g.appendChild(glow); g.appendChild(line); g.appendChild(flow);
+      gRoute.appendChild(g);
+
+      const len = line.getTotalLength();
+      /* 以「实线段 + 空白段」构成虚线，偏移量由 len 走到 0 即为描边绘制 */
+      line.style.strokeDasharray  = len + " " + len;
+      line.style.strokeDashoffset = len;
+      glow.style.strokeDasharray  = len + " " + len;
+      glow.style.strokeDashoffset = len;
+      flow.style.strokeDasharray  = "5 46";
+      /* 流光虚线周期固定，动画时长按路线种类统一，视觉速度一致 */
+
+      segments.push({
+        group: g, path: line, glow: glow, flow: flow,
+        len: len, kind: kind.key, to: seg.to, drawn: false,
+        sparks: []
+      });
+    });
+  });
+}
+
+/* ---- 5.3 站点标记 ---- */
+function markerGlyph(kind){
+  switch (kind){
+    case "origin":  // 起点：小三角
+      return el("path", { d: "M0,-7.2 L6.2,4.4 L-6.2,4.4 Z", "class": "st-dot" });
+    case "place":   // 办学地：方形（旋转成菱形）
+      return el("path", { d: "M0,-5.6 L5.6,0 L0,5.6 L-5.6,0 Z", "class": "st-dot" });
+    case "branch":  // 分校：上圆下尖
+      return el("path", { d: "M0,-6.4 C3.4,-6.4 4.6,-3.6 4.6,-1.4 C4.6,2.2 2.6,4.6 0,4.6 C-2.6,4.6 -4.6,2.2 -4.6,-1.4 C-4.6,-3.6 -3.4,-6.4 0,-6.4 Z", "class": "st-dot" });
+    default:        // 途经地：圆点
+      return el("circle", { r: 4.7, "class": "st-dot" });
+  }
+}
+
+function renderStations(){
+  const gSt = $("#layer-station");
+  let i = 0;
+  TIMELINE_ORDER.forEach(id => {
+    const st = STATION_DATA[id];
+    const x = px(st.lon), y = py(st.lat);
+    stationXY[id] = [x, y];
+
+    const g = el("g", {
+      "class": "station", id: "st-" + id, "data-id": id,
+      "data-kind": st.kind || "stop",
+      transform: "translate(" + x + " " + y + ")"
+    });
+
+    const pop = el("g", { "class": "pop" });
+    const halo = el("circle", { r: 14, "class": "st-halo" });
+    halo.style.animationDelay = (i * 0.31).toFixed(2) + "s";
+    const ring = el("circle", { r: 9, "class": "st-ring" });
+    pop.appendChild(halo);
+    pop.appendChild(ring);
+    pop.appendChild(markerGlyph(st.kind));
+
+    const lb = st.label || { dx: 0, dy: -18, anchor: "middle" };
+    const name = el("text", {
+      x: lb.dx, y: lb.dy, "class": "st-name", "text-anchor": lb.anchor || "middle"
+    });
+    name.textContent = st.name;
+
+    const hit = el("circle", { r: 19, "class": "st-hit" });
+
+    g.appendChild(pop);
+    g.appendChild(name);
+    g.appendChild(hit);
+    gSt.appendChild(g);
+
+    markerById[id] = g;
+    bindStationEvents(g, id);
+    i++;
+  });
+}
+
+/* ---- 5.4 时间轴 ---- */
+function renderTimeline(){
+  const wrap = $("#tlNodes");
+  TIMELINE_ORDER.forEach((id, i) => {
+    const st = STATION_DATA[id];
+    const btn = document.createElement("button");
+    btn.className = "tl-node";
+    btn.dataset.id = id;
+    btn.dataset.kind = st.kind || "stop";
+    btn.innerHTML =
+      '<span class="bulb"></span>' +
+      '<span class="tl-date">' + (st.tl || st.date) + '</span>' +
+      '<span class="tl-name">' + st.name + (st.kind === "branch" ? ' <i>分校</i>' : '') + '</span>';
+    btn.title = st.name + " · " + st.date;
+    btn.addEventListener("click", () => focusStation(id));
+    wrap.appendChild(btn);
+    tlNodes.push({ node: btn, delay: 900 + i * 70 });
+  });
+}
+const tlNodes = [];
+const tlProgressBar = $("#tlProgress"), tlWrap = $("#tlWrap");
+
+/* =============================================================================
+ * §6  入场动画（逐段描边 + 底图淡入 + 站点浮现）
+ * ========================================================================== */
+const entrance = { t: 0, done: false, queue: [] };
+const DRAW_MS = { main: 840, walk: 1400, branch: 1000 };  // 单段描边时长
+
+function buildEntrance(){
+  const T0 = 0.35;   // 底图开始
+  let t = T0;
+
+  /* 底图淡入 */
+  baseFade.forEach(item => {
+    entrance.queue.push({ at: item.delay / 1000, fn: () => item.node.classList.add("shown") });
+  });
+
+  /* 主路线逐段描边，每段到达即点亮该段终点站点 */
+  const mainSegs = segments.filter(s => s.kind === "main");
+  let tMain = 1.00;
+  const step = 0.36;
+  mainSegs.forEach((seg, i) => {
+    const start = tMain + i * step;
+    entrance.queue.push({ at: start, fn: () => drawSegment(seg, DRAW_MS.main) });
+  });
+  t = tMain + mainSegs.length * step + 0.2;
+  /* 起始站先立 */
+  entrance.queue.push({ at: 1.0, fn: () => revealStation("hangzhou") });
+
+  /* 步行路线 */
+  segments.filter(s => s.kind === "walk").forEach((seg, i) => {
+    const start = t + i * 0.32;
+    entrance.queue.push({ at: start, fn: () => drawSegment(seg, DRAW_MS.walk) });
+  });
+  t += 0.6;
+
+  /* 龙泉分校支线 */
+  segments.filter(s => s.kind === "branch").forEach(seg => {
+    entrance.queue.push({ at: t, fn: () => drawSegment(seg, DRAW_MS.branch) });
+  });
+  t += 0.35;
+
+  /* 时间轴节点依次浮现 */
+  tlNodes.forEach(item => {
+    entrance.queue.push({ at: 0.9 + item.delay / 1000 * 0.5, fn: () => item.node.classList.add("shown") });
+  });
+
+  entrance.queue.sort((a, b) => a.at - b.at);
+  entrance.endAt = Math.max(t + 1.2, 3.6);
+}
+
+function drawSegment(seg, dur){
+  if (seg.drawn) return;
+  seg.drawn = true;
+  seg.path.style.transition = "stroke-dashoffset " + dur + "ms cubic-bezier(.35,.15,.4,1)";
+  seg.glow.style.transition = "stroke-dashoffset " + dur + "ms cubic-bezier(.35,.15,.4,1), opacity .8s ease";
+  seg.path.style.strokeDashoffset = 0;
+  seg.glow.style.strokeDashoffset = 0;
+  seg.group.classList.add("drawn");
+  /* 段终点站点浮现 */
+  if (seg.to){
+    const at = Math.max(0, dur - 260);
+    seg.revealTimer = setTimeout(() => revealStation(seg.to), at);
+  }
+  /* 光点粒子延后启用 */
+  setTimeout(() => activateSparks(seg), dur + 420);
+}
+
+function revealStation(id){
+  const g = markerById[id];
+  if (g) g.classList.add("show");
+}
+
+function updateEntrance(dt){
+  if (entrance.done) return;
+  entrance.t += dt;
+  while (entrance.queue.length && entrance.queue[0].at <= entrance.t){
+    const ev = entrance.queue.shift();
+    try { ev.fn(); } catch(e){ /* 忽略单点异常，保证动画继续 */ }
+  }
+  if (entrance.t >= entrance.endAt){
+    entrance.done = true;
+    finishEntrance();
+  }
+}
+
+/** 立即完成全部入场动画（点击页面可跳过） */
+function finishEntrance(){
+  entrance.queue.forEach(ev => { try { ev.fn(); } catch(e){} });
+  entrance.queue.length = 0;
+  entrance.t = entrance.endAt;
+  entrance.done = true;
+  segments.forEach(seg => {
+    if (!seg.drawn){
+      seg.drawn = true;
+      seg.path.style.transition = "none";
+      seg.path.style.strokeDashoffset = 0;
+      seg.glow.style.transition = "none";
+      seg.glow.style.strokeDashoffset = 0;
+      seg.group.classList.add("drawn");
+    }
+    activateSparks(seg);
+  });
+  TIMELINE_ORDER.forEach(revealStation);
+  baseFade.forEach(item => item.node.classList.add("shown"));
+  tlNodes.forEach(item => item.node.classList.add("shown"));
+}
+
+/* =============================================================================
+ * §7  流动光点粒子
+ * ========================================================================== */
+const sparkLayer = () => $("#layer-spark");
+const SPARK_SPEED = 34;    // 用户坐标单位 / 秒（缓慢流动）
+
+function activateSparks(seg){
+  if (seg.sparksOn) return;
+  seg.sparksOn = true;
+  if (!seg.len) return;
+  const count = Math.max(1, Math.round(seg.len / 240));
+  const layer = sparkLayer();
+  for (let i = 0; i < count; i++){
+    const c = el("circle", {
+      r: seg.kind === "main" ? 5.4 : 4.4,
+      "class": "spark",
+      fill: seg.kind === "main" ? "url(#sparkGrad)" : "url(#sparkGradBlue)"
+    });
+    /* 先落位再淡入，避免首帧堆在坐标原点 */
+    const t0 = Math.random() * seg.len;
+    const p0 = seg.path.getPointAtLength(t0);
+    c.setAttribute("cx", p0.x.toFixed(2));
+    c.setAttribute("cy", p0.y.toFixed(2));
+    layer.appendChild(c);
+    seg.sparks.push({
+      node: c,
+      t: t0,
+      speed: SPARK_SPEED * (0.85 + Math.random() * 0.3)
+    });
+    /* 逐个淡入，避免突然出现 */
+    setTimeout(() => c.classList.add("on"), 80 + i * 260);
+  }
+}
+
+function updateSparks(dt){
+  segments.forEach(seg => {
+    if (!seg.sparksOn || !seg.sparks.length) return;
+    seg.sparks.forEach(sp => {
+      sp.t += sp.speed * dt;
+      if (sp.t > seg.len) sp.t -= seg.len;
+      const p = seg.path.getPointAtLength(sp.t);
+      sp.node.setAttribute("cx", p.x.toFixed(2));
+      sp.node.setAttribute("cy", p.y.toFixed(2));
+    });
+  });
+}
+
+/* =============================================================================
+ * §8  视图：缩放 / 平移 / 动画定位
+ * ========================================================================== */
+const VB = { x: 0, y: 52, w: 1200, h: 706 };
+const view = { x: 0, y: 0, k: 1 };
+const viewTarget = { x: 0, y: 0, k: 1 };
+let animatingView = false;
+const K_MIN = 0.72, K_MAX = 4.6;
+
+function applyView(){
+  viewport.style.transform = "translate(" + view.x + "px," + view.y + "px) scale(" + view.k + ")";
+  if (card.classList.contains("show")) placeCard();
+}
+
+/** 屏幕坐标 -> SVG 用户坐标（viewBox 内） */
+function screenToUser(clientX, clientY){
+  const r = svg.getBoundingClientRect();
+  const s = Math.min(r.width / VB.w, r.height / VB.h);   // meet 缩放
+  const offX = (r.width  - VB.w * s) / 2;
+  const offY = (r.height - VB.h * s) / 2;
+  return {
+    x: (clientX - r.left - offX) / s - view.x,
+    y: (clientY - r.top  - offY) / s - view.y
+  };
+}
+
+/** 屏幕坐标 -> 视口内像素坐标（用于浮卡定位） */
+function stagePoint(clientX, clientY){
+  const sr = stage.getBoundingClientRect();
+  return { x: clientX - sr.left, y: clientY - sr.top };
+}
+
+function zoomAt(userX, userY, factor){
+  const k2 = Math.min(K_MAX, Math.max(K_MIN, view.k * factor));
+  const f = k2 / view.k;
+  view.x = userX - (userX - view.x) * f;
+  view.y = userY - (userY - view.y) * f;
+  view.k = k2;
+  syncTarget();
+  applyView();
+}
+
+function syncTarget(){
+  viewTarget.x = view.x; viewTarget.y = view.y; viewTarget.k = view.k;
+}
+
+/* ---- 滚轮缩放 ---- */
+stage.addEventListener("wheel", e => {
+  e.preventDefault();
+  skipEntrance();
+  const p = screenToUser(e.clientX, e.clientY);
+  zoomAt(p.x, p.y, e.deltaY < 0 ? 1.13 : 1 / 1.13);
+}, { passive: false });
+
+/* ---- 拖拽平移 ---- */
+let dragging = false, dragStart = null;
+stage.addEventListener("pointerdown", e => {
+  skipEntrance();
+  if (e.target.closest(".station") || e.target.closest(".legend") ||
+      e.target.closest(".view-ctrl") || e.target.closest(".compass")) return;
+  dragging = true;
+  dragStart = { mx: e.clientX, my: e.clientY, vx: view.x, vy: view.y };
+  stage.classList.add("dragging");
+  stage.setPointerCapture(e.pointerId);
+  clearPinned();
+});
+stage.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const r = svg.getBoundingClientRect();
+  const s = Math.min(r.width / VB.w, r.height / VB.h);
+  view.x = dragStart.vx + (e.clientX - dragStart.mx) / s;
+  view.y = dragStart.vy + (e.clientY - dragStart.my) / s;
+  syncTarget();
+  applyView();
+});
+function endDrag(e){
+  if (!dragging) return;
+  dragging = false;
+  stage.classList.remove("dragging");
+  try { stage.releasePointerCapture(e.pointerId); } catch(err){}
+}
+stage.addEventListener("pointerup", endDrag);
+stage.addEventListener("pointercancel", endDrag);
+
+/* ---- 平滑定位到某站点 ---- */
+function focusStation(id){
+  skipEntrance();
+  const st = STATION_DATA[id];
+  const [ux, uy] = stationXY[id];
+  const r = svg.getBoundingClientRect();
+  const s = Math.min(r.width / VB.w, r.height / VB.h);
+  const offX = (r.width  - VB.w * s) / 2;
+  const offY = (r.height - VB.h * s) / 2;
+  /* 聚类站点（遵义/湄潭/永兴）使用更大缩放 */
+  const k = (id === "zunyi" || id === "meitan" || id === "yongxing") ? 2.85 : 2.35;
+
+  const cx = r.width / 2;         // 目标屏幕点（相对舞台）
+  const cy = r.height * 0.46;
+  viewTarget.k = k;
+  viewTarget.x = (cx - offX) / s - ux * k;
+  viewTarget.y = (cy - offY) / s - uy * k;
+  animatingView = true;
+
+  /* 时间轴高亮 */
+  tlNodes.forEach(item => item.node.classList.toggle("active", item.node.dataset.id === id));
+  /* 站点高亮 */
+  Object.keys(markerById).forEach(k2 => markerById[k2].classList.toggle("active", k2 === id));
+  /* 进度条按节点实际位置推进 */
+  setProgress(id);
+
+  pinnedId = id;
+  revealStation(id);
+  showCard(id);
+}
+
+/** 依据时间轴节点的真实位置推动进度线 */
+function setProgress(id){
+  if (!id){ tlProgressBar.style.width = "0px"; return; }
+  const item = tlNodes.find(n => n.node.dataset.id === id);
+  if (!item) return;
+  const wr = tlWrap.getBoundingClientRect();
+  const br = item.node.getBoundingClientRect();
+  tlProgressBar.style.width = Math.max(0, (br.left + br.width / 2) - (wr.left + 8)) + "px";
+}
+
+function updateViewAnim(dt){
+  if (!animatingView) return;
+  const ease = 1 - Math.pow(0.0016, dt);   // 帧率无关的指数缓动
+  view.x += (viewTarget.x - view.x) * ease;
+  view.y += (viewTarget.y - view.y) * ease;
+  view.k += (viewTarget.k - view.k) * ease;
+  const dx = Math.abs(viewTarget.x - view.x), dy = Math.abs(viewTarget.y - view.y);
+  const dk = Math.abs(viewTarget.k - view.k);
+  if (dx < 0.35 && dy < 0.35 && dk < 0.002){
+    view.x = viewTarget.x; view.y = viewTarget.y; view.k = viewTarget.k;
+    animatingView = false;
+  }
+  applyView();
+}
+
+/* ---- 视图按钮 ---- */
+$("#zoomIn").addEventListener("click", () => {
+  const r = svg.getBoundingClientRect();
+  const p = screenToUser(r.left + r.width / 2, r.top + r.height / 2);
+  skipEntrance(); zoomAt(p.x, p.y, 1.25);
+});
+$("#zoomOut").addEventListener("click", () => {
+  const r = svg.getBoundingClientRect();
+  const p = screenToUser(r.left + r.width / 2, r.top + r.height / 2);
+  skipEntrance(); zoomAt(p.x, p.y, 1 / 1.25);
+});
+$("#resetView").addEventListener("click", () => {
+  skipEntrance();
+  viewTarget.x = 0; viewTarget.y = 0; viewTarget.k = 1;
+  animatingView = true;
+  clearPinned();
+  tlNodes.forEach(item => item.node.classList.remove("active"));
+  Object.keys(markerById).forEach(k => markerById[k].classList.remove("active"));
+  setProgress(null);
+});
+
+/* =============================================================================
+ * §9  史料浮卡
+ * ========================================================================== */
+let pinnedId = null;    // 时间轴定位后固定的浮卡
+let hoverId  = null;
+
+function showCard(id){
+  const st = STATION_DATA[id];
+  if (!st) return;
+  card.dataset.side = "right";
+  card.innerHTML =
+    '<div class="card-arrow"></div>' +
+    '<div class="card-top">' +
+      '<span class="card-seal">' + (st.seal || "浙") + '</span>' +
+      '<div><h3 class="card-name">' + st.name + '</h3>' +
+      '<span class="card-sub">' + (st.sub || "") + '</span></div>' +
+    '</div>' +
+    '<div class="card-date">' + st.date + '</div>' +
+    '<p class="card-text">' + st.text + '</p>';
+  card.classList.add("show");
+  placeCard();
+}
+
+function hideCard(){ card.classList.remove("show"); }
+
+function clearPinned(){
+  if (!pinnedId) return;
+  pinnedId = null;
+  tlNodes.forEach(item => item.node.classList.remove("active"));
+  Object.keys(markerById).forEach(k => markerById[k].classList.remove("active"));
+  if (!hoverId) hideCard();
+}
+
+/** 依据标记屏幕位置摆放浮卡，自动左右翻转与边界收敛 */
+function placeCard(){
+  const id = hoverId || pinnedId;
+  if (!id) return;
+  const g = markerById[id];
+  if (!g) return;
+  /* 取 hit 圆（始终以站点为圆心）作为定位基准，避免文字标签拉偏包围盒 */
+  const anchor = g.querySelector(".st-hit") || g;
+  const r  = anchor.getBoundingClientRect();
+  const sr = stage.getBoundingClientRect();
+  const cw = card.offsetWidth  || 298;
+  const ch = card.offsetHeight || 150;
+  const mx = r.left - sr.left + r.width / 2;
+  const my = r.top  - sr.top  + r.height / 2;
+
+  let left = mx + 20, side = "right";
+  if (left + cw > sr.width - 14){ left = mx - 20 - cw; side = "left"; }
+  if (left < 14){ left = Math.min(14, Math.max(0, sr.width - cw - 14)); side = "right"; }
+  let top = my - ch / 2;
+  top = Math.max(12, Math.min(sr.height - ch - 12, top));
+
+  card.dataset.side = side;
+  card.style.left = left + "px";
+  card.style.top  = top  + "px";
+  card.style.setProperty("--arrow-y", (my - top) + "px");
+}
+
+function bindStationEvents(g, id){
+  g.addEventListener("pointerenter", () => {
+    hoverId = id;
+    showCard(id);
+  });
+  g.addEventListener("pointerleave", () => {
+    hoverId = null;
+    if (pinnedId) showCard(pinnedId); else hideCard();
+  });
+  g.addEventListener("click", e => {
+    e.stopPropagation();
+    skipEntrance();
+    focusStation(id);
+  });
+}
+
+/* 空白处点击：取消固定 */
+stage.addEventListener("click", e => {
+  if (e.target.closest(".station")) return;
+  clearPinned();
+});
+
+/* 窗口尺寸变化时重排浮卡 */
+window.addEventListener("resize", () => { if (card.classList.contains("show")) placeCard(); });
+
+/* =============================================================================
+ * §10  古琴背景音乐（WebAudio 合成 · 默认静音 · 轻柔悠远）
+ * -----------------------------------------------------------------------------
+ * 以 Karplus-Strong 拨弦算法合成古琴音色，取 G 宫五声音阶（宫商角徵羽），
+ * 随机缓奏 + 延迟混响，音量压低，不干扰阅读。无需任何外部音频文件。
+ * ========================================================================== */
+const Guqin = (function(){
+  let ctx = null, master = null, wet = null, timer = null;
+  let playing = false, bufferCache = {};
+
+  /* G 宫五声：G A B D E，分布于两个八度 */
+  const SCALE = [98.00, 110.00, 123.47, 146.83, 164.81, 196.00, 220.00, 246.94, 293.66, 329.63, 392.00];
+  /* 落指权重：低音更常出现，营造沉静感 */
+  const WEIGHT = [3, 3, 2, 4, 3, 4, 3, 2, 2, 2, 1];
+
+  function makePluckBuffer(freq, dur){
+    const sr = ctx.sampleRate;
+    const N  = Math.floor(sr * dur);
+    const buf = ctx.createBuffer(1, N, sr);
+    const d = buf.getChannelData(0);
+    const period = Math.max(2, Math.round(sr / freq));
+    const ring = new Float32Array(period);
+    for (let i = 0; i < period; i++) ring[i] = Math.random() * 2 - 1;
+    /* 环形缓冲先做一次平滑，去掉噪声毛刺，使起音更接近丝弦 */
+    for (let pass = 0; pass < 3; pass++){
+      let prev = ring[period - 1];
+      for (let i = 0; i < period; i++){
+        const cur = ring[i];
+        ring[i] = (cur + prev) * 0.5;
+        prev = cur;
+      }
+    }
+    let idx = 0;
+    const damp = 0.9955;
+    for (let i = 0; i < N; i++){
+      const cur = ring[idx];
+      const nxt = ring[(idx + 1) % period];
+      ring[idx] = (cur + nxt) * 0.5 * damp;
+      d[i] = cur;
+      idx = (idx + 1) % period;
+    }
+    /* 整体包络：缓起微亮、长尾渐弱 */
+    for (let i = 0; i < N; i++){
+      const x = i / N;
+      const atk = Math.min(1, x / 0.012);
+      const dec = Math.exp(-3.1 * x);
+      d[i] *= atk * dec;
+    }
+    return buf;
+  }
+
+  function pluck(freq, when, gainVal, pan){
+    const key = freq.toFixed(2);
+    if (!bufferCache[key]) bufferCache[key] = makePluckBuffer(freq, 4.2);
+    const src = ctx.createBufferSource();
+    src.buffer = bufferCache[key];
+    const g = ctx.createGain();
+    g.gain.value = gainVal;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 2600; lp.Q.value = 0.6;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p) p.pan.value = pan || 0;
+
+    src.connect(g); g.connect(lp);
+    if (p){ lp.connect(p); p.connect(master); p.connect(wet); }
+    else  { lp.connect(master); lp.connect(wet); }
+    src.start(when);
+  }
+
+  function pickNote(){
+    let total = 0;
+    for (let i = 0; i < SCALE.length; i++) total += WEIGHT[i];
+    let r = Math.random() * total;
+    for (let i = 0; i < SCALE.length; i++){
+      r -= WEIGHT[i];
+      if (r <= 0) return SCALE[i];
+    }
+    return SCALE[0];
+  }
+
+  /* 一句：单音居多，偶尔双音（撮）或泛音 */
+  function phrase(){
+    if (!playing) return;
+    const now = ctx.currentTime + 0.05;
+    const base = pickNote();
+    pluck(base, now, 0.5 + Math.random() * 0.2, (Math.random() - 0.5) * 0.6);
+    const roll = Math.random();
+    if (roll > 0.66){
+      pluck(pickNote() * (Math.random() > 0.6 ? 2 : 1), now + 0.34 + Math.random() * 0.3, 0.28, (Math.random() - 0.5) * 0.6);
+    } else if (roll > 0.42){
+      pluck(base * 2, now + 0.42 + Math.random() * 0.5, 0.16, (Math.random() - 0.5) * 0.5);
+    }
+    const gap = (2.5 + Math.random() * 2.3) * 1000;
+    timer = setTimeout(phrase, gap);
+  }
+
+  function init(){
+    if (ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0;
+    /* 简易延迟混响：制造厅堂余韵 */
+    const delay = ctx.createDelay(1.5);
+    delay.delayTime.value = 0.34;
+    const fb = ctx.createGain(); fb.gain.value = 0.34;
+    const wl = ctx.createBiquadFilter(); wl.type = "lowpass"; wl.frequency.value = 1600;
+    wet = ctx.createGain(); wet.gain.value = 0.5;
+    wet.connect(delay); delay.connect(wl); wl.connect(fb); fb.connect(delay);
+    wl.connect(master);
+    const outlp = ctx.createBiquadFilter();
+    outlp.type = "lowpass"; outlp.frequency.value = 3400;
+    master.connect(outlp); outlp.connect(ctx.destination);
+  }
+
+  function setVolume(v, ramp){
+    if (!master) return;
+    const now = ctx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(v, now + ramp);
+  }
+
+  return {
+    get isPlaying(){ return playing; },
+    toggle(){
+      init();
+      if (!ctx) return false;
+      if (ctx.state === "suspended") ctx.resume();
+      if (!playing){
+        playing = true;
+        setVolume(0.1, 1.6);          // 音量压低，仅作背景
+        clearTimeout(timer);
+        phrase();
+      } else {
+        playing = false;
+        clearTimeout(timer);
+        setVolume(0, 1.1);
+      }
+      return playing;
+    }
+  };
+})();
+
+const musicBtn = $("#musicBtn"), musicLabel = $("#musicLabel");
+musicBtn.addEventListener("click", () => {
+  const on = Guqin.toggle();
+  musicBtn.classList.toggle("on", on);
+  musicBtn.classList.toggle("off", !on);
+  musicLabel.textContent = on ? "琴音 · 鸣" : "琴音 · 静";
+  if (on){ /* 首次播放时顺带跳过入场动画，避免干扰 */ }
+});
+
+/* =============================================================================
+ * 启动
+ * ========================================================================== */
+function skipEntrance(){
+  if (!entrance.done) finishEntrance();
+}
+
+function boot(){
+  renderBaseMap();
+  renderRoutes();
+  renderStations();
+  renderTimeline();
+  buildEntrance();
+  applyView();
+
+  /* 入场：略作停顿，让纸面先显影 */
+  setTimeout(() => document.body.classList.add("ready"), 60);
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) finishEntrance();
+
+  /* 兜底：若运行环境不派发 requestAnimationFrame，仍在限定时间内呈现完整地图 */
+  setTimeout(finishEntrance, (entrance.endAt + 2.5) * 1000);
+
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    updateEntrance(dt);
+    updateSparks(dt);
+    updateViewAnim(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* 任意点击/按键跳过入场 */
+  window.addEventListener("pointerdown", skipEntrance, { once: true });
+  window.addEventListener("keydown", skipEntrance, { once: true });
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+</script>
+</body>
+</html>
