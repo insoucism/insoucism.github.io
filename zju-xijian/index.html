@@ -110,7 +110,7 @@ body.ready .subtitle{ opacity:1; }
 }
 body.ready .title-rule{ transform:scaleX(1); }
 
-/* 右上：古琴音乐开关 */
+/* 右上：背景古乐开关 */
 .music-btn{
   flex:none; display:flex; align-items:center; gap:10px;
   padding:9px 15px 9px 12px;
@@ -474,13 +474,13 @@ body.ready footer.timeline{ opacity:1; transform:none; }
       <div class="title-rule"></div>
     </div>
   </div>
-  <button class="music-btn" id="musicBtn" title="古琴背景音乐开关（默认静音）">
+  <button class="music-btn" id="musicBtn" title="背景古乐开关（默认静音）" aria-pressed="false">
     <svg class="qin" width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">
       <path d="M2 5.2 C7 3.4 19 3.4 24 5.2 L24 10.8 C19 12.6 7 12.6 2 10.8 Z" fill="none" stroke="currentColor" stroke-width="1.1"/>
       <path d="M3.4 6.4 H22.6 M3.2 7.8 H22.8 M3.2 9.2 H22.8 M3.6 10.4 H22.4" stroke="currentColor" stroke-width=".55" opacity=".75"/>
     </svg>
     <span class="dot"></span>
-    <span id="musicLabel">琴音 · 静</span>
+    <span id="musicLabel">古乐 · 静</span>
   </button>
 </header>
 
@@ -609,7 +609,7 @@ body.ready footer.timeline{ opacity:1; transform:none; }
  *   §7  流动光点粒子
  *   §8  缩放、平移、视图动画
  *   §9  史料浮卡
- *   §10 古琴背景音乐（WebAudio 合成，默认静音）
+ *   §10 背景古乐（WebAudio 实时合成，默认静音）
  * ========================================================================== */
 
 /* =============================================================================
@@ -1938,29 +1938,107 @@ stage.addEventListener("click", e => {
 window.addEventListener("resize", () => { if (card.classList.contains("show")) placeCard(); });
 
 /* =============================================================================
- * §10  古琴背景音乐（WebAudio 合成 · 默认静音 · 轻柔悠远）
+ * §10  背景古乐（WebAudio 实时合成 · 默认静音）
  * -----------------------------------------------------------------------------
- * 以 Karplus-Strong 拨弦算法合成古琴音色，取 G 宫五声音阶（宫商角徵羽），
- * 随机缓奏 + 延迟混响，音量压低，不干扰阅读。无需任何外部音频文件。
+ * 为什么是实时合成而不是现成录音：
+ *   页面公开托管在 GitHub Pages 上，直接嵌入受版权保护的录音有法律风险；
+ *   实时合成完全规避该问题，且保持零外部依赖、离线可用。
+ *
+ * 编制与音色（都指向"厚重沧桑"的听感）：
+ *   古琴    Karplus-Strong 拨弦，以低音区为主，偶带"走手音"滑音
+ *   箫      气声长音，慢起音 + 揉弦，苍凉
+ *   埙      空腔长音，更古拙
+ *   编钟    非谐分音加法合成，极长衰减，钟磬余韵
+ *   大鼓    低频击奏，为"厚重"打底
+ *   持续低音 两层微失谐正弦 + 五度，缓慢起伏，铺出历史的分量感
+ *
+ * 调式：D 羽调式（D F G A C，即 F 宫系统的羽音），小调色彩，沉郁而不悲戚。
+ * 织体：刻意稀疏、无节拍，留白占相当比例——空白本身也是沧桑感的一部分。
+ * 混响：程序生成脉冲响应 + ConvolverNode，真实厅堂余韵（尾音做暗化处理）。
+ * 音量全程压低，仅作背景，不干扰阅读。
  * ========================================================================== */
-const Guqin = (function(){
-  let ctx = null, master = null, wet = null, timer = null;
-  let playing = false, bufferCache = {};
+const Music = (function(){
+  let ctx = null, master = null, dry = null, wet = null, verb = null;
+  let timer = null, drone = null, noiseBuf = null, playing = false;
+  const pluckCache = {};
 
-  /* G 宫五声：G A B D E，分布于两个八度 */
-  const SCALE = [98.00, 110.00, 123.47, 146.83, 164.81, 196.00, 220.00, 246.94, 293.66, 329.63, 392.00];
-  /* 落指权重：低音更常出现，营造沉静感 */
-  const WEIGHT = [3, 3, 2, 4, 3, 4, 3, 2, 2, 2, 1];
+  /* ---- 音阶与骨架音 ---- */
+  /* D 羽调式，跨三个八度；低音权重更高，制造沉坠感 */
+  const SCALE  = [73.42, 87.31, 98.00, 110.00, 130.81,
+                  146.83, 174.61, 196.00, 220.00, 261.63,
+                  293.66, 349.23, 392.00, 440.00, 523.25];
+  const WEIGHT = [ 4, 3, 4, 3, 2,
+                   5, 4, 4, 3, 2,
+                   2, 1, 2, 1, 1 ];
+  /* 骨架音：整曲反复回到这几个音，避免随机堆砌导致的散乱 */
+  const PILLAR = [73.42, 98.00, 110.00, 130.81, 146.83, 174.61];
+  const XIAO_SET  = [146.83, 174.61, 196.00, 220.00, 261.63, 293.66];
+  const XUN_SET   = [110.00, 130.81, 146.83, 174.61];
 
-  function makePluckBuffer(freq, dur){
-    const sr = ctx.sampleRate;
-    const N  = Math.floor(sr * dur);
+  function pick(arr){ return arr[(Math.random() * arr.length) | 0]; }
+  function pickNote(){
+    let total = 0;
+    for (let i = 0; i < WEIGHT.length; i++) total += WEIGHT[i];
+    let r = Math.random() * total;
+    for (let i = 0; i < WEIGHT.length; i++){ r -= WEIGHT[i]; if (r <= 0) return SCALE[i]; }
+    return SCALE[0];
+  }
+
+  /* ---- 路由：所有音源统一经此进入干声与混响 ---- */
+  function route(node, pan){
+    let out = node;
+    if (ctx.createStereoPanner){
+      const p = ctx.createStereoPanner();
+      p.pan.value = pan || 0;
+      node.connect(p);
+      out = p;
+    }
+    out.connect(dry);
+    out.connect(verb);
+  }
+
+  /* ---- 脉冲响应：噪声 × 指数衰减，再过一阶低通使尾音变暗 ---- */
+  function makeIR(seconds, decay, dark){
+    const sr = ctx.sampleRate, len = Math.floor(sr * seconds);
+    const buf = ctx.createBuffer(2, len, sr);
+    let peak = 0;
+    for (let ch = 0; ch < 2; ch++){
+      const d = buf.getChannelData(ch);
+      let lp = 0;
+      for (let i = 0; i < len; i++){
+        const t = i / len;
+        const n = (Math.random() * 2 - 1) * Math.pow(1 - t, decay);
+        lp += (n - lp) * dark;
+        d[i] = lp;
+        const a = Math.abs(lp);
+        if (a > peak) peak = a;
+      }
+    }
+    if (peak > 0) for (let ch = 0; ch < 2; ch++){
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] /= peak;   // 归一化，便于用固定湿声增益
+    }
+    return buf;
+  }
+
+  function noise(){
+    if (noiseBuf) return noiseBuf;
+    const sr = ctx.sampleRate, len = Math.floor(sr * 2);
+    noiseBuf = ctx.createBuffer(1, len, sr);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+
+  /* ---- 古琴：Karplus-Strong 拨弦 ---- */
+  function pluckBuffer(freq, dur){
+    const sr = ctx.sampleRate, N = Math.floor(sr * dur);
     const buf = ctx.createBuffer(1, N, sr);
     const d = buf.getChannelData(0);
     const period = Math.max(2, Math.round(sr / freq));
     const ring = new Float32Array(period);
     for (let i = 0; i < period; i++) ring[i] = Math.random() * 2 - 1;
-    /* 环形缓冲先做一次平滑，去掉噪声毛刺，使起音更接近丝弦 */
+    /* 三次平滑去毛刺，使起音更接近丝弦而非噪声 */
     for (let pass = 0; pass < 3; pass++){
       let prev = ring[period - 1];
       for (let i = 0; i < period; i++){
@@ -1969,88 +2047,237 @@ const Guqin = (function(){
         prev = cur;
       }
     }
+    /* 低音弦更沉，阻尼更小、余韵更长 */
+    const damp = freq < 160 ? 0.9976 : 0.9963;
     let idx = 0;
-    const damp = 0.9955;
     for (let i = 0; i < N; i++){
-      const cur = ring[idx];
-      const nxt = ring[(idx + 1) % period];
+      const cur = ring[idx], nxt = ring[(idx + 1) % period];
       ring[idx] = (cur + nxt) * 0.5 * damp;
       d[i] = cur;
       idx = (idx + 1) % period;
     }
-    /* 整体包络：缓起微亮、长尾渐弱 */
     for (let i = 0; i < N; i++){
       const x = i / N;
-      const atk = Math.min(1, x / 0.012);
-      const dec = Math.exp(-3.1 * x);
-      d[i] *= atk * dec;
+      d[i] *= Math.min(1, x / 0.010) * Math.exp(-2.6 * x);
     }
     return buf;
   }
 
-  function pluck(freq, when, gainVal, pan){
+  /** bend 为"走手音"下滑幅度，如 0.05 表示音高下滑 5% */
+  function qin(freq, when, gainVal, pan, bend){
     const key = freq.toFixed(2);
-    if (!bufferCache[key]) bufferCache[key] = makePluckBuffer(freq, 4.2);
+    if (!pluckCache[key]) pluckCache[key] = pluckBuffer(freq, 5.0);
     const src = ctx.createBufferSource();
-    src.buffer = bufferCache[key];
+    src.buffer = pluckCache[key];
+    if (bend){
+      src.playbackRate.setValueAtTime(1, when);
+      src.playbackRate.linearRampToValueAtTime(1 - bend, when + 1.1);
+    }
     const g = ctx.createGain();
     g.gain.value = gainVal;
     const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = 2600; lp.Q.value = 0.6;
-    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if (p) p.pan.value = pan || 0;
-
-    src.connect(g); g.connect(lp);
-    if (p){ lp.connect(p); p.connect(master); p.connect(wet); }
-    else  { lp.connect(master); lp.connect(wet); }
+    lp.type = "lowpass";
+    lp.frequency.value = freq < 200 ? 1500 : 2500;
+    lp.Q.value = 0.5;
+    src.connect(g); g.connect(lp); route(lp, pan);
     src.start(when);
   }
 
-  function pickNote(){
-    let total = 0;
-    for (let i = 0; i < SCALE.length; i++) total += WEIGHT[i];
-    let r = Math.random() * total;
-    for (let i = 0; i < SCALE.length; i++){
-      r -= WEIGHT[i];
-      if (r <= 0) return SCALE[i];
-    }
-    return SCALE[0];
+  /* ---- 箫：气声长音 ---- */
+  function xiao(freq, when, dur, gainVal, pan){
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(gainVal, when + dur * 0.28);
+    g.gain.setValueAtTime(gainVal, when + dur * 0.60);
+    g.gain.exponentialRampToValueAtTime(0.0008, when + dur);
+
+    const o1 = ctx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq;
+    const vib = ctx.createOscillator(); vib.frequency.value = 4.3 + Math.random() * 0.9;
+    const vibG = ctx.createGain(); vibG.gain.value = freq * 0.006;
+    vib.connect(vibG); vibG.connect(o1.frequency);
+
+    /* 高八度泛音，添"竹"的质感 */
+    const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = freq * 2;
+    const g2 = ctx.createGain(); g2.gain.value = 0.11;
+
+    /* 气声：带通噪声 */
+    const br = ctx.createBufferSource(); br.buffer = noise(); br.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = freq * 1.7; bp.Q.value = 1.1;
+    const bg = ctx.createGain(); bg.gain.value = 0.055;
+
+    o1.connect(g); o2.connect(g2); g2.connect(g);
+    br.connect(bp); bp.connect(bg); bg.connect(g);
+    route(g, pan);
+
+    const stop = when + dur + 0.12;
+    [o1, o2, vib, br].forEach(n => { n.start(when); n.stop(stop); });
   }
 
-  /* 一句：单音居多，偶尔双音（撮）或泛音 */
+  /* ---- 埙：空腔长音，比箫更古拙、更闷 ---- */
+  function xun(freq, when, dur, gainVal, pan){
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(gainVal, when + dur * 0.34);
+    g.gain.setValueAtTime(gainVal, when + dur * 0.58);
+    g.gain.exponentialRampToValueAtTime(0.0008, when + dur);
+
+    const o1 = ctx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq;
+    const o3 = ctx.createOscillator(); o3.type = "sine"; o3.frequency.value = freq * 3;
+    const g3 = ctx.createGain(); g3.gain.value = 0.09;
+    const vib = ctx.createOscillator(); vib.frequency.value = 3.4 + Math.random() * 0.6;
+    const vibG = ctx.createGain(); vibG.gain.value = freq * 0.008;
+    vib.connect(vibG); vibG.connect(o1.frequency);
+
+    o1.connect(g); o3.connect(g3); g3.connect(g);
+    route(g, pan);
+    const stop = when + dur + 0.12;
+    [o1, o3, vib].forEach(n => { n.start(when); n.stop(stop); });
+  }
+
+  /* ---- 编钟：非谐分音 + 极长衰减 ---- */
+  function bell(freq, when, gainVal, pan){
+    const R = [1, 2.00, 2.76, 4.07, 5.43, 8.21];
+    const A = [1, 0.52, 0.40, 0.24, 0.15, 0.08];
+    const D = [8.0, 5.6, 4.2, 3.0, 2.0, 1.2];
+    for (let i = 0; i < R.length; i++){
+      const o = ctx.createOscillator();
+      o.type = "sine"; o.frequency.value = freq * R[i];
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, when);
+      g.gain.linearRampToValueAtTime(gainVal * A[i], when + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0006, when + D[i]);
+      o.connect(g); route(g, pan);
+      o.start(when); o.stop(when + D[i] + 0.1);
+    }
+  }
+
+  /* ---- 大鼓：低频击奏，音高快速下坠 ---- */
+  function drum(when, gainVal){
+    const o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(98, when);
+    o.frequency.exponentialRampToValueAtTime(43, when + 0.34);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(gainVal, when + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0006, when + 0.9);
+    o.connect(g); route(g, 0);
+    o.start(when); o.stop(when + 0.95);
+  }
+
+  /* ---- 持续低音：缓慢起伏的"地音" ---- */
+  function startDrone(){
+    if (drone) return;
+    const t = ctx.currentTime;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.115, t + 7);      // 极慢淡入
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 340;
+
+    const o1 = ctx.createOscillator(); o1.type = "sine"; o1.frequency.value = 73.42;        // D2
+    const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = 73.42 * 1.004; // 微失谐→缓慢拍频
+    const o5 = ctx.createOscillator(); o5.type = "sine"; o5.frequency.value = 110.00;        // A2 五度
+    const g5 = ctx.createGain(); g5.gain.value = 0.26;
+
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
+    const lfoG = ctx.createGain(); lfoG.gain.value = 0.03;
+    lfo.connect(lfoG); lfoG.connect(g.gain);
+
+    o1.connect(lp); o2.connect(lp); o5.connect(g5); g5.connect(lp);
+    lp.connect(g); route(g, 0);
+    [o1, o2, o5, lfo].forEach(o => o.start());
+    drone = { g: g, lfoG: lfoG, nodes: [o1, o2, o5, lfo] };
+  }
+
+  function stopDrone(){
+    if (!drone) return;
+    const d = drone, t = ctx.currentTime;
+    drone = null;
+    try { d.lfoG.disconnect(); } catch (e){}       // 先断开起伏，否则淡出后仍有余音
+    d.g.gain.cancelScheduledValues(t);
+    d.g.gain.setValueAtTime(d.g.gain.value, t);
+    d.g.gain.linearRampToValueAtTime(0, t + 3.2);
+    d.nodes.forEach(o => { try { o.stop(t + 3.6); } catch (e){} });
+  }
+
+  /* ---- 织体：稀疏事件，留白占相当比例 ---- */
+  function qinEvent(t){
+    const f = pickNote();
+    qin(f, t, 0.30 + Math.random() * 0.14, (Math.random() - 0.5) * 0.55,
+        Math.random() < 0.3 ? 0.03 + Math.random() * 0.03 : 0);
+    /* 偶尔跟一个上方五度的散音（撮） */
+    if (Math.random() < 0.42){
+      qin(f * 1.5, t + 0.30 + Math.random() * 0.35, 0.17, (Math.random() - 0.5) * 0.55, 0);
+    }
+  }
+
+  function xiaoEvent(t){
+    const f = pick(XIAO_SET);
+    const dur = 3.6 + Math.random() * 3.0;
+    xiao(f, t, dur, 0.15, (Math.random() - 0.5) * 0.5);
+    if (Math.random() < 0.45){                       // 下方五度叠入，加厚
+      xiao(f / 1.5, t + 1.4 + Math.random(), dur * 0.85, 0.10, (Math.random() - 0.5) * 0.5);
+    }
+  }
+
+  function xunEvent(t){
+    const f = pick(XUN_SET);
+    xun(f, t, 3.0 + Math.random() * 2.2, 0.13, (Math.random() - 0.5) * 0.4);
+  }
+
+  /** 慢板下行短句：古琴三音，苍凉骨架 */
+  function motif(t){
+    const seq = [293.66, 261.63, 220.00, 174.61, 146.83];
+    const start = 1 + ((Math.random() * 3) | 0);
+    let when = t;
+    for (let i = 0; i < 3; i++){
+      const f = seq[Math.min(start + i, seq.length - 1)];
+      qin(f, when, 0.26 - i * 0.04, (i - 1) * 0.25, i === 2 ? 0.05 : 0);
+      when += 0.95 + Math.random() * 0.55;
+    }
+  }
+
   function phrase(){
     if (!playing) return;
-    const now = ctx.currentTime + 0.05;
-    const base = pickNote();
-    pluck(base, now, 0.5 + Math.random() * 0.2, (Math.random() - 0.5) * 0.6);
-    const roll = Math.random();
-    if (roll > 0.66){
-      pluck(pickNote() * (Math.random() > 0.6 ? 2 : 1), now + 0.34 + Math.random() * 0.3, 0.28, (Math.random() - 0.5) * 0.6);
-    } else if (roll > 0.42){
-      pluck(base * 2, now + 0.42 + Math.random() * 0.5, 0.16, (Math.random() - 0.5) * 0.5);
-    }
-    const gap = (2.5 + Math.random() * 2.3) * 1000;
-    timer = setTimeout(phrase, gap);
+    const t = ctx.currentTime + 0.06;
+    const r = Math.random();
+    if      (r < 0.12) motif(t);
+    else if (r < 0.46) qinEvent(t);
+    else if (r < 0.63) xiaoEvent(t);
+    else if (r < 0.72) xunEvent(t);
+    else if (r < 0.77) bell(146.83, t, 0.17, 0);                 // 编钟，至疏至重
+    else if (r < 0.82) drum(t, 0.26);                            // 大鼓
+    /* 其余 18% 留白 */
+    timer = setTimeout(phrase, (2800 + Math.random() * 6200));
   }
 
+  /* ---- 初始化 ---- */
   function init(){
     if (ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
+
     master = ctx.createGain();
     master.gain.value = 0;
-    /* 简易延迟混响：制造厅堂余韵 */
-    const delay = ctx.createDelay(1.5);
-    delay.delayTime.value = 0.34;
-    const fb = ctx.createGain(); fb.gain.value = 0.34;
-    const wl = ctx.createBiquadFilter(); wl.type = "lowpass"; wl.frequency.value = 1600;
-    wet = ctx.createGain(); wet.gain.value = 0.5;
-    wet.connect(delay); delay.connect(wl); wl.connect(fb); fb.connect(delay);
-    wl.connect(master);
+
+    dry = ctx.createGain(); dry.gain.value = 0.72;
+    wet = ctx.createGain(); wet.gain.value = 0.85;
+    verb = ctx.createConvolver();
+    verb.buffer = makeIR(4.0, 2.6, 0.30);     // 4 秒厅堂，尾音偏暗
+
+    verb.connect(wet); wet.connect(master);
+    dry.connect(master);
+
+    /* 收尾：压缩器防削顶 + 低通去掉刺耳高频，整体更温厚 */
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.knee.value = 14; comp.ratio.value = 3;
+    comp.attack.value = 0.012; comp.release.value = 0.45;
     const outlp = ctx.createBiquadFilter();
-    outlp.type = "lowpass"; outlp.frequency.value = 3400;
-    master.connect(outlp); outlp.connect(ctx.destination);
+    outlp.type = "lowpass"; outlp.frequency.value = 4200;
+    master.connect(comp); comp.connect(outlp); outlp.connect(ctx.destination);
   }
 
   function setVolume(v, ramp){
@@ -2069,13 +2296,15 @@ const Guqin = (function(){
       if (ctx.state === "suspended") ctx.resume();
       if (!playing){
         playing = true;
-        setVolume(0.1, 1.6);          // 音量压低，仅作背景
+        setVolume(0.15, 2.4);            // 音量压低，仅作背景
+        startDrone();
         clearTimeout(timer);
-        phrase();
+        timer = setTimeout(phrase, 1400);  // 先让地音铺开再起音
       } else {
         playing = false;
         clearTimeout(timer);
-        setVolume(0, 1.1);
+        stopDrone();
+        setVolume(0, 1.8);
       }
       return playing;
     }
@@ -2084,11 +2313,11 @@ const Guqin = (function(){
 
 const musicBtn = $("#musicBtn"), musicLabel = $("#musicLabel");
 musicBtn.addEventListener("click", () => {
-  const on = Guqin.toggle();
+  const on = Music.toggle();
   musicBtn.classList.toggle("on", on);
   musicBtn.classList.toggle("off", !on);
-  musicLabel.textContent = on ? "琴音 · 鸣" : "琴音 · 静";
-  if (on){ /* 首次播放时顺带跳过入场动画，避免干扰 */ }
+  musicLabel.textContent = on ? "古乐 · 鸣" : "古乐 · 静";
+  musicBtn.setAttribute("aria-pressed", on ? "true" : "false");
 });
 
 /* =============================================================================
